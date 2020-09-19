@@ -18,15 +18,17 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r.Use(cors.New(conf))
 
-	r.GET("/", api.Home)
-
-	categories := r.Group("/categories")
+	appleApi := r.Group("/apple-api")
 	{
-		categories.GET("/", api.GetCategories)
-		categories.GET("/:id", api.GetCategory)
-		categories.POST("/", api.CreateCategory)
-		categories.PUT("/", api.UpdateCategory)
-		categories.DELETE("/:id", api.DeleteCategory)
+		appleApi.GET("/", api.Home)
+		categories := appleApi.Group("/categories")
+		{
+			categories.GET("/", api.GetCategories)
+			categories.GET("/:id", api.GetCategory)
+			categories.POST("/", api.CreateCategory)
+			categories.PUT("/", api.UpdateCategory)
+			categories.DELETE("/:id", api.DeleteCategory)
+		}
 	}
 
 	return r
