@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/applenperry-go/api"
 	"github.com/applenperry-go/config"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,6 +13,10 @@ func Init(configuration config.Configuration) *gin.Engine {
 	}
 
 	r := gin.Default()
+	conf := cors.DefaultConfig()
+	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
+
+	r.Use(cors.New(conf))
 
 	r.GET("/", api.Home)
 
