@@ -2,14 +2,21 @@ package route
 
 import (
 	"github.com/applenperry-go/api"
-	"github.com/labstack/echo"
-	"gorm.io/gorm"
+	"github.com/gin-gonic/gin"
 )
 
-func Init(db *gorm.DB) *echo.Echo {
-	e := echo.New()
+func Init() *gin.Engine {
+	//gin.SetMode(gin.ReleaseMode)
+	r := gin.Default()
 
-	e.GET("/", api.Home)
-	e.GET("/categories", api.GetCategories(db))
-	return e
+	r.GET("/", api.Home)
+
+	categories := r.Group("/categories")
+	{
+		categories.GET("/", api.GetCategories)
+		categories.GET("/:id", api.GetCategory)
+		categories.POST("/", api.CreateCategory)
+	}
+
+	return r
 }

@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/labstack/echo"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-func Home(c echo.Context) error {
-	return c.String(http.StatusOK, "Home")
+func Home(c *gin.Context) {
+	c.String(http.StatusOK, "Home")
 }

@@ -6,8 +6,11 @@ import (
 )
 
 func main() {
-	db := db.Init()
-	e := route.Init(db)
+	err := db.Init()
+	if err != nil {
+		panic("Failed to connect to database!")
+	}
+	r := route.Init()
 
-	e.Logger.Fatal(e.Start(":5001"))
+	r.Run(":5001")
 }

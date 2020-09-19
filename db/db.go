@@ -8,17 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func Init() *gorm.DB {
+var DB *gorm.DB
+
+func Init() error {
 	configuration := config.GetConfig()
 	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=posix/Europe/Moscow", configuration.DB_HOST, configuration.DB_USERNAME, configuration.DB_PASSWORD, configuration.DB_NAME, configuration.DB_PORT)
 	db, err := gorm.Open(postgres.Open(connectionString), &gorm.Config{})
 	if err != nil {
-		panic("DB Connection Error")
+		return err
 	}
-
 	initialMigration(db)
-
-	return db
+	DB = db
+	return nil
 }
 
 func initialMigration(db *gorm.DB) {
