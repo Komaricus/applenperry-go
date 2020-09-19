@@ -15,6 +15,8 @@ type Configuration struct {
 
 func GetConfig() Configuration {
 	configuration := Configuration{}
-	gonfig.GetConf("config/config.json", &configuration)
+	if err := gonfig.GetConf("config/config.json", &configuration); err != nil {
+		panic("Can't read config")
+	}
 	return configuration
 }
