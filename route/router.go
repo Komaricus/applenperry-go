@@ -1,10 +1,13 @@
 package route
 
 import (
+	jwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/applenperry-go/api"
+	"github.com/applenperry-go/api/middleware"
 	"github.com/applenperry-go/config"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func Init(configuration config.Configuration) *gin.Engine {
@@ -14,23 +17,44 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r := gin.Default()
 	conf := cors.DefaultConfig()
-	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru", "http://localhost:8080"}
+	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
 
 	r.Use(cors.New(conf))
+
+	authMiddleware, err := middleware.GetAuthMiddleware()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	r.NoRoute(authMiddleware.MiddlewareFunc(), func(c *gin.Context) {
+		claims := jwt.ExtractClaims(c)
+		log.Printf("NoRoute claims: %#v\n", claims)
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	})
 
 	appleApi := r.Group("/apple-api")
 	{
 		appleApi.GET("/", api.Home)
+		appleApi.POST("/login", authMiddleware.LoginHandler)
+		appleApi.GET("/refresh_token", authMiddleware.RefreshHandler)
+
 		categories := appleApi.Group("/categories")
 		{
 			categories.GET("/", api.GetCategories)
 			categories.GET("/:id", api.GetCategory)
-			categories.POST("/", api.CreateCategory)
-			categories.PUT("/", api.UpdateCategory)
-			categories.DELETE("/:id", api.DeleteCategory)
+			categories.Use(authMiddleware.MiddlewareFunc())
+			{
+				categories.POST("/", api.CreateCategory)
+				categories.PUT("/", api.UpdateCategory)
+				categories.DELETE("/:id", api.DeleteCategory)
+			}
 		}
 
-		appleApi.POST("/admins", api.CreateAdmin)
+		admins := appleApi.Group("/admins")
+		admins.Use(authMiddleware.MiddlewareFunc())
+		{
+			admins.POST("/", api.CreateAdmin)
+		}
 	}
 
 	return r

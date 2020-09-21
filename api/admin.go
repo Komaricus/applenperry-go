@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-func CreateAdmin (c *gin.Context) {
+func CreateAdmin(c *gin.Context) {
 	var admin model.Admin
 	if err := c.Bind(&admin); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

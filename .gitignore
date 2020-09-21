@@ -1,5 +1,6 @@
 .DS_Store
 /config/config.json
+.env
 
 # Editor directories and files
 .idea
