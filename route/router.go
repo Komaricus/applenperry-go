@@ -14,7 +14,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r := gin.Default()
 	conf := cors.DefaultConfig()
-	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
+	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru", "http://localhost:8080"}
 
 	r.Use(cors.New(conf))
 
@@ -29,6 +29,8 @@ func Init(configuration config.Configuration) *gin.Engine {
 			categories.PUT("/", api.UpdateCategory)
 			categories.DELETE("/:id", api.DeleteCategory)
 		}
+
+		appleApi.POST("/admins", api.CreateAdmin)
 	}
 
 	return r
