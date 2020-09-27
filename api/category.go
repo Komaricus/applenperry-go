@@ -4,6 +4,7 @@ import (
 	"github.com/applenperry-go/db"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"net/http"
 )
 
@@ -40,6 +41,13 @@ func CreateCategory(c *gin.Context) {
 		return
 	}
 
+	id, err := uuid.NewV4()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	category.ID = id.String()
+
 	if err := db.DB.Create(&category).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -53,6 +61,10 @@ func UpdateCategory(c *gin.Context) {
 	if err := c.Bind(&category); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	if category.ParentID == nil {
+		db.DB.Model(category).UpdateColumn("parent_id", nil)
 	}
 
 	if err := db.DB.Updates(model.Category{
