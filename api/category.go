@@ -93,5 +93,28 @@ func DeleteCategory(c *gin.Context) {
 		return
 	}
 
+	if err := DeleteChildCategory(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func DeleteChildCategory(id string) error {
+	var child []model.Category
+	if err := db.DB.Where("is_deleted = false").Where("parent_id = ?", id).Find(&child).Error; err != nil {
+		return err
+	}
+
+	for _, c := range child {
+		if err := db.DB.Model(model.Category{ID: c.ID}).Update("is_deleted", true).Error; err != nil {
+			return err
+		}
+		if err := DeleteChildCategory(c.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
