@@ -64,7 +64,10 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	if category.ParentID == nil {
-		db.DB.Model(category).UpdateColumn("parent_id", nil)
+		if err := db.DB.Model(category).UpdateColumn("parent_id", nil).Error; err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	if err := db.DB.Updates(model.Category{
