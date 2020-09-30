@@ -51,6 +51,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		aboutCider := appleApi.Group("/about-cider")
+		{
+			aboutCider.GET("/", api.GetAboutCiderList)
+			aboutCider.GET("/:id", api.GetAboutCider)
+			aboutCider.Use(authMiddleware.MiddlewareFunc())
+			{
+				aboutCider.POST("/", api.CreateAboutCider)
+				aboutCider.PUT("/", api.UpdateAboutCider)
+				aboutCider.DELETE("/:id", api.DeleteAboutCider)
+			}
+		}
+
 		admins := appleApi.Group("/admins")
 		admins.Use(authMiddleware.MiddlewareFunc())
 		{
