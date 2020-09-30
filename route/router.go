@@ -18,6 +18,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 	r := gin.Default()
 	conf := cors.DefaultConfig()
 	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
+	conf.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	r.Use(cors.New(conf))
 
