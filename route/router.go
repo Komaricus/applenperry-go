@@ -22,6 +22,8 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r.Use(cors.New(conf))
 
+	r.MaxMultipartMemory = 8 << 20 // 8 MiB
+
 	authMiddleware, err := middleware.GetAuthMiddleware()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -38,6 +40,8 @@ func Init(configuration config.Configuration) *gin.Engine {
 		appleApi.GET("/", api.Home)
 		appleApi.POST("/login", authMiddleware.LoginHandler)
 		appleApi.GET("/refresh_token", authMiddleware.RefreshHandler)
+
+		appleApi.POST("/upload", api.UploadFiles)
 
 		categories := appleApi.Group("/categories")
 		{
