@@ -41,8 +41,6 @@ func Init(configuration config.Configuration) *gin.Engine {
 		appleApi.POST("/login", authMiddleware.LoginHandler)
 		appleApi.GET("/refresh_token", authMiddleware.RefreshHandler)
 
-		appleApi.POST("/upload", api.UploadFiles)
-
 		categories := appleApi.Group("/categories")
 		{
 			categories.GET("/", api.GetCategories)
@@ -65,6 +63,12 @@ func Init(configuration config.Configuration) *gin.Engine {
 				aboutCider.PUT("/", api.UpdateAboutCider)
 				aboutCider.DELETE("/:id", api.DeleteAboutCider)
 			}
+		}
+
+		files := appleApi.Group("/files")
+		files.Use(authMiddleware.MiddlewareFunc())
+		{
+			files.POST("/upload", api.UploadFiles)
 		}
 
 		admins := appleApi.Group("/admins")
