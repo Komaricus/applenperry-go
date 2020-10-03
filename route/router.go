@@ -65,6 +65,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		countries := appleApi.Group("/countries")
+		{
+			countries.GET("/", api.GetCountries)
+			countries.GET("/:id", api.GetCountry)
+			countries.Use(authMiddleware.MiddlewareFunc())
+			{
+				countries.POST("/", api.CreateCountry)
+				countries.PUT("/", api.UpdateCountry)
+				countries.DELETE("/:id", api.DeleteCountry)
+			}
+		}
+
 		files := appleApi.Group("/files")
 		files.Use(authMiddleware.MiddlewareFunc())
 		{

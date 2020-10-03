@@ -10,7 +10,7 @@ func (CategoriesTable) TableName() string {
 
 type Category struct {
 	CategoriesTable
-	ID          string    `json:"id"`
+	ID          string    `json:"id" gorm:"primarykey"`
 	Name        string    `json:"name"`
 	Url         string    `json:"url"`
 	Description string    `json:"description"`

@@ -8,7 +8,7 @@ func (AdminsTable) TableName() string {
 
 type Admin struct {
 	AdminsTable
-	ID       string `json:"id"`
+	ID       string `json:"id" gorm:"primarykey"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }

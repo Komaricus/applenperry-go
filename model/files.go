@@ -10,7 +10,7 @@ func (FilesTable) TableName() string {
 
 type File struct {
 	FilesTable
-	ID           string    `json:"id"`
+	ID           string    `json:"id" gorm:"primarykey"`
 	FileName     string    `json:"fileName"`
 	Path         string    `json:"path"`
 	OriginalName string    `json:"originalName"`

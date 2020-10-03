@@ -3,7 +3,6 @@ package db
 import (
 	"fmt"
 	"github.com/applenperry-go/config"
-	"github.com/applenperry-go/model"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -16,11 +15,6 @@ func Init(configuration config.Configuration) error {
 	if err != nil {
 		return err
 	}
-	initialMigration(db)
 	DB = db
 	return nil
-}
-
-func initialMigration(db *gorm.DB) {
-	db.AutoMigrate(&model.Category{})
 }

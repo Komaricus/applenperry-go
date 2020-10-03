@@ -10,7 +10,7 @@ func (AboutCiderTable) TableName() string {
 
 type AboutCider struct {
 	AboutCiderTable
-	ID          string    `json:"id"`
+	ID          string    `json:"id" gorm:"primarykey"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Size        int       `json:"size"`
