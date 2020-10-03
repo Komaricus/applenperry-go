@@ -26,8 +26,7 @@ func UploadFiles(c *gin.Context) {
 	var basePath string
 	configuration := config.GetConfig()
 	if configuration.PRODUCTION {
-		//todo
-		basePath = "/"
+		basePath = "/var/www/html/images/"
 	} else {
 		basePath = "/Users/aleksandr/Documents/applenperry/applenperry-vue/src/assets/img/"
 	}
