@@ -13,6 +13,17 @@ import (
 	"time"
 )
 
+func GetFiles(c *gin.Context) {
+	var files []model.File
+
+	if err := db.DB.Where("is_deleted = false").Find(&files).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, files)
+}
+
 func UploadFiles(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -63,6 +74,48 @@ func UploadFiles(c *gin.Context) {
 		dbFiles = append(dbFiles, dbFile)
 	}
 	c.JSON(http.StatusOK, dbFiles)
+}
+
+func GetPossibleToDeleteFile(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var countries []model.Country
+	if err := db.DB.Where("flag = ?", id).Find(&countries).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(countries) > 0 {
+		c.JSON(http.StatusOK, gin.H{"id": id, "status": "not_deletable", "countries": countries})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deletable"})
+}
+
+func DeleteFile(c *gin.Context) {
+	var file model.File
+	if err := c.Bind(&file); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	path := os.Getenv("IMAGES_PATH") + file.Path
+	if err := os.Remove(path); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DB.Delete(&file).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": file.ID, "status": "deleted"})
 }
 
 const letterBytes = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

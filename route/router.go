@@ -81,6 +81,9 @@ func Init(configuration config.Configuration) *gin.Engine {
 		files.Use(authMiddleware.MiddlewareFunc())
 		{
 			files.POST("/upload", api.UploadFiles)
+			files.GET("/", api.GetFiles)
+			files.GET("/deletable/:id", api.GetPossibleToDeleteFile)
+			files.DELETE("/", api.DeleteFile)
 		}
 
 		admins := appleApi.Group("/admins")
