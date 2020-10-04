@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"github.com/applenperry-go/config"
 	"github.com/applenperry-go/db"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
@@ -23,13 +22,7 @@ func UploadFiles(c *gin.Context) {
 	files := form.File["files"]
 
 	dbFiles := make([]model.File, 0)
-	var basePath string
-	configuration := config.GetConfig()
-	if configuration.PRODUCTION {
-		basePath = "/var/www/html/images/"
-	} else {
-		basePath = "/Users/aleksandr/Documents/applenperry/applenperry-vue/src/assets/img/"
-	}
+	basePath := os.Getenv("IMAGES_PATH")
 
 	for _, file := range files {
 		id, err := uuid.NewV4()
