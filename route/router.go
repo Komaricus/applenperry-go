@@ -37,16 +37,21 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	appleApi := r.Group("/apple-api")
 	{
-		appleApi.GET("/", api.Home)
 		appleApi.POST("/login", authMiddleware.LoginHandler)
 		appleApi.GET("/refresh_token", authMiddleware.RefreshHandler)
 
+		open := appleApi.Group("/open")
+		{
+			open.GET("/", api.Home)
+			open.GET("slides", api.GetSlides)
+		}
+
 		categories := appleApi.Group("/categories")
 		{
-			categories.GET("/", api.GetCategories)
-			categories.GET("/:id", api.GetCategory)
 			categories.Use(authMiddleware.MiddlewareFunc())
 			{
+				categories.GET("/", api.GetCategories)
+				categories.GET("/:id", api.GetCategory)
 				categories.POST("/", api.CreateCategory)
 				categories.PUT("/", api.UpdateCategory)
 				categories.DELETE("/:id", api.DeleteCategory)
@@ -55,10 +60,10 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 		aboutCider := appleApi.Group("/about-cider")
 		{
-			aboutCider.GET("/", api.GetAboutCiderList)
-			aboutCider.GET("/:id", api.GetAboutCider)
 			aboutCider.Use(authMiddleware.MiddlewareFunc())
 			{
+				aboutCider.GET("/", api.GetAboutCiderList)
+				aboutCider.GET("/:id", api.GetAboutCider)
 				aboutCider.POST("/", api.CreateAboutCider)
 				aboutCider.PUT("/", api.UpdateAboutCider)
 				aboutCider.DELETE("/:id", api.DeleteAboutCider)
@@ -67,13 +72,24 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 		countries := appleApi.Group("/countries")
 		{
-			countries.GET("/", api.GetCountries)
-			countries.GET("/:id", api.GetCountry)
 			countries.Use(authMiddleware.MiddlewareFunc())
 			{
+				countries.GET("/", api.GetCountries)
+				countries.GET("/:id", api.GetCountry)
 				countries.POST("/", api.CreateCountry)
 				countries.PUT("/", api.UpdateCountry)
 				countries.DELETE("/:id", api.DeleteCountry)
+			}
+		}
+
+		homeSlider := appleApi.Group("/home-slider")
+		{
+			homeSlider.Use(authMiddleware.MiddlewareFunc())
+			{
+				homeSlider.GET("/", api.GetHomeSliderItems)
+				homeSlider.POST("/", api.CreateHomeSliderItem)
+				homeSlider.PUT("/", api.UpdateHomeSliderItem)
+				homeSlider.DELETE("/:id", api.DeleteHomeSliderItem)
 			}
 		}
 
