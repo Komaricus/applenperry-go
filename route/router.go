@@ -87,6 +87,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			homeSlider.Use(authMiddleware.MiddlewareFunc())
 			{
 				homeSlider.GET("/", api.GetHomeSliderItems)
+				homeSlider.GET("/:id", api.GetHomeSliderItem)
 				homeSlider.POST("/", api.CreateHomeSliderItem)
 				homeSlider.PUT("/", api.UpdateHomeSliderItem)
 				homeSlider.DELETE("/:id", api.DeleteHomeSliderItem)

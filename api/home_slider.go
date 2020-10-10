@@ -21,12 +21,32 @@ func GetSlides(c *gin.Context) {
 
 func GetHomeSliderItems(c *gin.Context) {
 	var items []model.HomeSliderItem
-	if err := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false").Find(&items).Error; err != nil {
+	q := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false")
+	if err := q.Find(&items).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, items)
+}
+
+func GetHomeSliderItem(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var item model.HomeSliderItem
+
+	q := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false").Where("id = ?", id)
+
+	if err := q.First(&item).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, item)
 }
 
 func CreateHomeSliderItem(c *gin.Context) {

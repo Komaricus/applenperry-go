@@ -10,7 +10,8 @@ import (
 
 func GetCountries(c *gin.Context) {
 	var countries []model.Country
-	if err := db.DB.Preload("File").Where("dbo.countries.is_deleted = false").Find(&countries).Error; err != nil {
+	q := db.DB.Preload("File").Where("dbo.countries.is_deleted = false")
+	if err := q.Find(&countries).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -26,7 +27,9 @@ func GetCountry(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Joins("dbo.files on dbo.files.id = dbo.countries.flag").Where("id = ?", id).Where("is_deleted = false").First(&country).Error; err != nil {
+	q := db.DB.Preload("File").Where("dbo.countries.is_deleted = false").Where("id = ?", id)
+
+	if err := q.First(&country).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
