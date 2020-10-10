@@ -13,7 +13,7 @@ type HomeSliderItem struct {
 	ID        string    `json:"id" gorm:"primarykey"`
 	Name      string    `json:"name"`
 	Priority  int       `json:"priority"`
-	FileID    string    `json:"file_id"`
+	FileID    string    `json:"fileId"`
 	CreatedAt time.Time `json:"createdAt"`
 	IsDeleted bool      `json:"isDeleted"`
 	File      File      `json:"image" gorm:"foreignKey:FileID"`

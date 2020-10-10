@@ -94,6 +94,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		vendors := appleApi.Group("/vendors")
+		{
+			vendors.Use(authMiddleware.MiddlewareFunc())
+			{
+				vendors.GET("/", api.GetVendors)
+				vendors.GET("/:id", api.GetVendor)
+				vendors.POST("/", api.CreateVendor)
+				vendors.PUT("/", api.UpdateVendor)
+				vendors.DELETE("/:id", api.DeleteVendor)
+			}
+		}
+
 		files := appleApi.Group("/files")
 		files.Use(authMiddleware.MiddlewareFunc())
 		{
