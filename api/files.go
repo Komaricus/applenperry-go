@@ -89,8 +89,14 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		return
 	}
 
-	if len(countries) > 0 {
-		c.JSON(http.StatusOK, gin.H{"id": id, "status": "not_deletable", "countries": countries})
+	var slides []model.HomeSliderItem
+	if err := db.DB.Where("file_id = ?", id).Find(&slides).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(countries) > 0 || len(slides) > 0 {
+		c.JSON(http.StatusOK, gin.H{"id": id, "status": "not_deletable", "countries": countries, "homeSlides": slides})
 		return
 	}
 
