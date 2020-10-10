@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 )
@@ -59,27 +58,12 @@ func UploadFiles(c *gin.Context) {
 			return
 		}
 
-		cmd := exec.Command("convert", path, "-strip", "-quality", "90", path)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		if err := cmd.Run(); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		stat, err := os.Stat(path)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
 		dbFile := model.File{
 			ID:           id.String(),
 			FileName:     filename,
 			Path:         filePath + filename,
 			OriginalName: originalName,
-			Size:         stat.Size(),
+			Size:         file.Size,
 		}
 
 		if err := db.DB.Create(&dbFile).Error; err != nil {
