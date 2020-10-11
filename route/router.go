@@ -118,6 +118,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		news := appleApi.Group("/news")
+		{
+			news.Use(authMiddleware.MiddlewareFunc())
+			{
+				news.GET("/", api.GetNews)
+				news.GET("/:id", api.GetOneNews)
+				news.POST("/", api.CreateNews)
+				news.PUT("/", api.UpdateNews)
+				news.DELETE("/:id", api.DeleteNews)
+			}
+		}
+
 		files := appleApi.Group("/files")
 		files.Use(authMiddleware.MiddlewareFunc())
 		{

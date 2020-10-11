@@ -91,5 +91,10 @@ func DeleteNewsSection(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Model(model.News{}).Where("section_id = ?", id).Updates(model.News{IsDeleted: false}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
 }
