@@ -95,8 +95,20 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		return
 	}
 
-	if len(countries) > 0 || len(slides) > 0 {
-		c.JSON(http.StatusOK, gin.H{"id": id, "status": "not_deletable", "countries": countries, "homeSlides": slides})
+	var vendors []model.Vendor
+	if err := db.DB.Where("file_id = ?", id).Find(&vendors).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"id":         id,
+			"status":     "not_deletable",
+			"countries":  countries,
+			"homeSlides": slides,
+			"vendors":    vendors,
+		})
 		return
 	}
 
@@ -110,13 +122,13 @@ func DeleteFile(c *gin.Context) {
 		return
 	}
 
-	path := os.Getenv("IMAGES_PATH") + file.Path
-	if err := os.Remove(path); err != nil {
+	if err := db.DB.Delete(&file).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := db.DB.Delete(&file).Error; err != nil {
+	path := os.Getenv("IMAGES_PATH") + file.Path
+	if err := os.Remove(path); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
