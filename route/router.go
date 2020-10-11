@@ -106,6 +106,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		newsSections := appleApi.Group("/news-sections")
+		{
+			newsSections.Use(authMiddleware.MiddlewareFunc())
+			{
+				newsSections.GET("/", api.GetNewsSections)
+				newsSections.GET("/:id", api.GetNewsSection)
+				newsSections.POST("/", api.CreateNewsSection)
+				newsSections.PUT("/", api.UpdateNewsSection)
+				newsSections.DELETE("/:id", api.DeleteNewsSection)
+			}
+		}
+
 		files := appleApi.Group("/files")
 		files.Use(authMiddleware.MiddlewareFunc())
 		{
