@@ -10,18 +10,57 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
 func GetFiles(c *gin.Context) {
 	var files []model.File
 
-	if err := db.DB.Where("is_deleted = false").Find(&files).Error; err != nil {
+	page := 1
+	pageParam := c.Query("page")
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	perPage := -1
+	perPageParam := c.Query("perPage")
+	if perPageParam != "" {
+		perPage, _ = strconv.Atoi(perPageParam)
+	}
+
+	search := c.Query("search")
+
+	offset := (page - 1) * perPage
+
+	q := db.DB.Where("is_deleted = false").Offset(offset).Order("created_at desc")
+	t := db.DB.Model(model.File{}).Where("is_deleted = false").Group("id")
+
+	if perPage != -1 {
+		q.Limit(perPage)
+	}
+
+	if search != "" {
+		search = "%" + search + "%"
+		q.Where("original_name LIKE ?", search)
+		t.Where("original_name LIKE ?", search)
+	}
+
+	if err := q.Find(&files).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, files)
+	var count int64
+	if err := t.Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.GetFilesResponse{
+		Total: count,
+		Files: files,
+	})
 }
 
 func UploadFiles(c *gin.Context) {

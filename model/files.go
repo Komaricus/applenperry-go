@@ -18,3 +18,8 @@ type File struct {
 	CreatedAt    time.Time `json:"createdAt"`
 	IsDeleted    bool      `json:"isDeleted"`
 }
+
+type GetFilesResponse struct {
+	Total int64  `json:"total"`
+	Files []File `json:"files"`
+}
