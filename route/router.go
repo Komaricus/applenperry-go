@@ -143,6 +143,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 		admins.Use(authMiddleware.MiddlewareFunc())
 		{
 			admins.POST("/", api.CreateAdmin)
+			admins.GET("/heartbeat", api.CheckHeartbeat)
 		}
 	}
 

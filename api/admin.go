@@ -46,3 +46,7 @@ func CreateAdmin(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, admin)
 }
+
+func CheckHeartbeat(c *gin.Context) {
+	c.JSON(http.StatusOK, nil)
+}
