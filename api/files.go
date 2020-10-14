@@ -101,13 +101,39 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		return
 	}
 
-	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 {
+	var news []model.News
+	if err := db.DB.Where("file_id = ?", id).Find(&news).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	newsMap := make(map[string]bool, len(news))
+	for _, n := range news {
+		if ok := newsMap[n.ID]; !ok {
+			newsMap[n.ID] = true
+		}
+	}
+
+	var naf []model.NewsAndFiles
+	if err := db.DB.Joins("News").Where("dbo.news_and_files.file_id = ?", id).Find(&naf).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, nf := range naf {
+		if ok := newsMap[nf.NewsID]; !ok {
+			newsMap[nf.NewsID] = true
+			news = append(news, nf.News)
+		}
+	}
+
+	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"id":         id,
 			"status":     "not_deletable",
 			"countries":  countries,
 			"homeSlides": slides,
 			"vendors":    vendors,
+			"news":       news,
 		})
 		return
 	}

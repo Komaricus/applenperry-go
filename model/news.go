@@ -22,3 +22,17 @@ type News struct {
 	Section     NewsSection `json:"section" gorm:"foreignKey:SectionID"`
 	File        File        `json:"image" gorm:"foreignKey:FileID"`
 }
+
+type NewsAndFilesTable struct{}
+
+func (NewsAndFilesTable) TableName() string {
+	return "dbo.news_and_files"
+}
+
+type NewsAndFiles struct {
+	NewsAndFilesTable
+	ID     string `gorm:"primarykey"`
+	NewsID string
+	FileID string
+	News   News `gorm:"foreignKey:NewsID"`
+}
