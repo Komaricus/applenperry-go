@@ -73,7 +73,7 @@ func UpdateCategory(c *gin.Context) {
 	if err := db.DB.Updates(model.Category{
 		ID:          category.ID,
 		Name:        category.Name,
-		Url:         category.Url,
+		URL:         category.URL,
 		Description: category.Description,
 		ParentID:    category.ParentID,
 	}).Error; err != nil {

@@ -130,7 +130,20 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
+		productsTypes := appleApi.Group("/products-types")
+		{
+			productsTypes.Use(authMiddleware.MiddlewareFunc())
+			{
+				productsTypes.GET("/", api.GetProductsTypes)
+				productsTypes.GET("/:id", api.GetProductType)
+				productsTypes.POST("/", api.CreateProductType)
+				productsTypes.PUT("/", api.UpdateProductType)
+				productsTypes.DELETE("/:id", api.DeleteProductType)
+			}
+		}
+
 		files := appleApi.Group("/files")
+
 		files.Use(authMiddleware.MiddlewareFunc())
 		{
 			files.POST("/upload", api.UploadFiles)

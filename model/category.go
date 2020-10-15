@@ -12,7 +12,7 @@ type Category struct {
 	CategoriesTable
 	ID          string    `json:"id" gorm:"primarykey"`
 	Name        string    `json:"name"`
-	Url         string    `json:"url"`
+	URL         string    `json:"url"`
 	Description string    `json:"description"`
 	ParentID    *string   `json:"parentId"`
 	CreatedAt   time.Time `json:"createdAt"`
