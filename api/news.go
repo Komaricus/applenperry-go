@@ -85,6 +85,7 @@ func UpdateNews(c *gin.Context) {
 		Description: news.Description,
 		FileID:      news.FileID,
 		Content:     news.Content,
+		URL:         news.URL,
 	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

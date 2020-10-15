@@ -12,6 +12,7 @@ type News struct {
 	NewsTable
 	ID          string      `json:"id" gorm:"primarykey"`
 	Name        string      `json:"name"`
+	URL         string      `json:"url"`
 	SectionID   string      `json:"sectionId"`
 	Subheader   string      `json:"subheader"`
 	Description string      `json:"description"`
