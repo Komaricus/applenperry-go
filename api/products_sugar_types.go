@@ -8,35 +8,35 @@ import (
 	"net/http"
 )
 
-func GetProductsTypes(c *gin.Context) {
-	var pt []model.ProductsType
-	if err := db.DB.Where("is_deleted = false").Find(&pt).Error; err != nil {
+func GetProductsSugarTypes(c *gin.Context) {
+	var pst []model.ProductsSugarType
+	if err := db.DB.Where("is_deleted = false").Find(&pst).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, pt)
+	c.JSON(http.StatusOK, pst)
 }
 
-func GetProductsType(c *gin.Context) {
-	var pt model.ProductsType
+func GetProductsSugarType(c *gin.Context) {
+	var pst model.ProductsSugarType
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
 
-	if err := db.DB.Where("id = ?", id).Where("is_deleted = false").First(&pt).Error; err != nil {
+	if err := db.DB.Where("id = ?", id).Where("is_deleted = false").First(&pst).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, pt)
+	c.JSON(http.StatusOK, pst)
 }
 
-func CreateProductsType(c *gin.Context) {
-	var pt model.ProductsType
-	if err := c.Bind(&pt); err != nil {
+func CreateProductsSugarType(c *gin.Context) {
+	var pst model.ProductsSugarType
+	if err := c.Bind(&pst); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -46,42 +46,42 @@ func CreateProductsType(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	pt.ID = id.String()
+	pst.ID = id.String()
 
-	if err := db.DB.Create(&pt).Error; err != nil {
+	if err := db.DB.Create(&pst).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, pt)
+	c.JSON(http.StatusCreated, pst)
 }
 
-func UpdateProductsType(c *gin.Context) {
-	var pt model.ProductsType
-	if err := c.Bind(&pt); err != nil {
+func UpdateProductsSugarType(c *gin.Context) {
+	var pst model.ProductsSugarType
+	if err := c.Bind(&pst); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := db.DB.Updates(model.ProductsType{
-		ID:   pt.ID,
-		Name: pt.Name,
+	if err := db.DB.Updates(model.ProductsSugarType{
+		ID:   pst.ID,
+		Name: pst.Name,
 	}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, pt)
+	c.JSON(http.StatusOK, pst)
 }
 
-func DeleteProductsType(c *gin.Context) {
+func DeleteProductsSugarType(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
 
-	if err := db.DB.Model(model.ProductsType{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Model(model.ProductsSugarType{ID: id}).Update("is_deleted", true).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -17,7 +17,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r := gin.Default()
 	conf := cors.DefaultConfig()
-	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
+	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru", "http://localhost:8080"}
 	conf.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	r.Use(cors.New(conf))
@@ -135,10 +135,22 @@ func Init(configuration config.Configuration) *gin.Engine {
 			productsTypes.Use(authMiddleware.MiddlewareFunc())
 			{
 				productsTypes.GET("/", api.GetProductsTypes)
-				productsTypes.GET("/:id", api.GetProductType)
-				productsTypes.POST("/", api.CreateProductType)
-				productsTypes.PUT("/", api.UpdateProductType)
-				productsTypes.DELETE("/:id", api.DeleteProductType)
+				productsTypes.GET("/:id", api.GetProductsType)
+				productsTypes.POST("/", api.CreateProductsType)
+				productsTypes.PUT("/", api.UpdateProductsType)
+				productsTypes.DELETE("/:id", api.DeleteProductsType)
+			}
+		}
+
+		productsSugarTypes := appleApi.Group("/products-sugar-types")
+		{
+			productsSugarTypes.Use(authMiddleware.MiddlewareFunc())
+			{
+				productsSugarTypes.GET("/", api.GetProductsSugarTypes)
+				productsSugarTypes.GET("/:id", api.GetProductsSugarType)
+				productsSugarTypes.POST("/", api.CreateProductsSugarType)
+				productsSugarTypes.PUT("/", api.UpdateProductsSugarType)
+				productsSugarTypes.DELETE("/:id", api.DeleteProductsSugarType)
 			}
 		}
 
