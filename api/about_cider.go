@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,7 +11,11 @@ import (
 
 func GetAboutCiderList(c *gin.Context) {
 	var aboutCiderList []model.AboutCider
-	if err := db.DB.Where("is_deleted = false").Find(&aboutCiderList).Error; err != nil {
+	if err := orm.GetList(db.DB, &aboutCiderList, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -19,14 +24,13 @@ func GetAboutCiderList(c *gin.Context) {
 }
 
 func GetAboutCider(c *gin.Context) {
-	var aboutCider model.AboutCider
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
-	if err := db.DB.Where("id = ?", id).Where("is_deleted = false").First(&aboutCider).Error; err != nil {
+	var aboutCider model.AboutCider
+	if err := orm.GetFirst(db.DB, &aboutCider, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -63,12 +67,7 @@ func UpdateAboutCider(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Updates(model.AboutCider{
-		ID:          aboutCider.ID,
-		Name:        aboutCider.Name,
-		Description: aboutCider.Description,
-		Size:        aboutCider.Size,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&aboutCider).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -83,7 +82,7 @@ func DeleteAboutCider(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.AboutCider{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Delete(model.AboutCider{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

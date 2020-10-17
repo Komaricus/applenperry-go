@@ -52,6 +52,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				categories.GET("/", api.GetCategories)
 				categories.GET("/:id", api.GetCategory)
+				categories.GET("/:id/deletable", api.GetPossibleToDeleteCategory)
 				categories.POST("/", api.CreateCategory)
 				categories.PUT("/", api.UpdateCategory)
 				categories.DELETE("/:id", api.DeleteCategory)
@@ -76,6 +77,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				countries.GET("/", api.GetCountries)
 				countries.GET("/:id", api.GetCountry)
+				countries.GET("/:id/deletable", api.GetPossibleToDeleteCountry)
 				countries.POST("/", api.CreateCountry)
 				countries.PUT("/", api.UpdateCountry)
 				countries.DELETE("/:id", api.DeleteCountry)
@@ -100,6 +102,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				vendors.GET("/", api.GetVendors)
 				vendors.GET("/:id", api.GetVendor)
+				vendors.GET("/:id/deletable", api.GetPossibleToDeleteVendor)
 				vendors.POST("/", api.CreateVendor)
 				vendors.PUT("/", api.UpdateVendor)
 				vendors.DELETE("/:id", api.DeleteVendor)
@@ -112,6 +115,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				newsSections.GET("/", api.GetNewsSections)
 				newsSections.GET("/:id", api.GetNewsSection)
+				newsSections.GET("/:id/deletable", api.GetPossibleToDeleteNewsSection)
 				newsSections.POST("/", api.CreateNewsSection)
 				newsSections.PUT("/", api.UpdateNewsSection)
 				newsSections.DELETE("/:id", api.DeleteNewsSection)
@@ -136,6 +140,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				productsTypes.GET("/", api.GetProductsTypes)
 				productsTypes.GET("/:id", api.GetProductsType)
+				productsTypes.GET("/:id/deletable", api.GetPossibleToDeleteProductsType)
 				productsTypes.POST("/", api.CreateProductsType)
 				productsTypes.PUT("/", api.UpdateProductsType)
 				productsTypes.DELETE("/:id", api.DeleteProductsType)
@@ -148,6 +153,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			{
 				productsSugarTypes.GET("/", api.GetProductsSugarTypes)
 				productsSugarTypes.GET("/:id", api.GetProductsSugarType)
+				productsSugarTypes.GET("/:id/deletable", api.GetPossibleToDeleteProductsSugarType)
 				productsSugarTypes.POST("/", api.CreateProductsSugarType)
 				productsSugarTypes.PUT("/", api.UpdateProductsSugarType)
 				productsSugarTypes.DELETE("/:id", api.DeleteProductsSugarType)

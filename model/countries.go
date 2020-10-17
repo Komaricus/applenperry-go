@@ -14,6 +14,7 @@ type Country struct {
 	Name      string    `json:"name"`
 	Flag      string    `json:"flag"`
 	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
-	File      File      `json:"image" gorm:"foreignKey:Flag"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	File File `json:"image" gorm:"foreignKey:Flag"`
 }

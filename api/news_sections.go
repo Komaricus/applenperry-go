@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,8 +11,11 @@ import (
 
 func GetNewsSections(c *gin.Context) {
 	var sections []model.NewsSection
-	q := db.DB.Where("is_deleted = false")
-	if err := q.Find(&sections).Error; err != nil {
+	if err := orm.GetList(db.DB, &sections, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -20,16 +24,13 @@ func GetNewsSections(c *gin.Context) {
 }
 
 func GetNewsSection(c *gin.Context) {
-	var section model.NewsSection
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
-	q := db.DB.Where("is_deleted = false").Where("id = ?", id)
-
-	if err := q.First(&section).Error; err != nil {
+	var section model.NewsSection
+	if err := orm.GetFirst(db.DB, &section, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -66,12 +67,7 @@ func UpdateNewsSection(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Updates(model.NewsSection{
-		ID:       section.ID,
-		Name:     section.Name,
-		URL:      section.URL,
-		Priority: section.Priority,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&section).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -86,15 +82,37 @@ func DeleteNewsSection(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.NewsSection{ID: id}).Update("is_deleted", true).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := db.DB.Model(model.News{}).Where("section_id = ?", id).Updates(model.News{IsDeleted: false}).Error; err != nil {
+	if err := db.DB.Delete(model.NewsSection{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func GetPossibleToDeleteNewsSection(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var news []model.News
+	if err := db.DB.Where("section_id = ?", id).Find(&news).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(news) > 0 {
+		deleteConflicts := make(map[string]interface{})
+		deleteConflicts["news"] = news
+		c.JSON(http.StatusOK, gin.H{
+			"id":              id,
+			"status":          "not_deletable",
+			"deleteConflicts": deleteConflicts,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deletable"})
 }

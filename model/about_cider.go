@@ -15,5 +15,5 @@ type AboutCider struct {
 	Description string    `json:"description"`
 	Size        int       `json:"size"`
 	CreatedAt   time.Time `json:"createdAt"`
-	IsDeleted   bool      `json:"isDeleted"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }

@@ -15,13 +15,15 @@ type HomeSliderItem struct {
 	Priority  int       `json:"priority"`
 	FileID    string    `json:"fileId"`
 	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
-	File      File      `json:"image" gorm:"foreignKey:FileID"`
+	UpdatedAt time.Time `json:"updatedAt"`
+
+	File File `json:"image" gorm:"foreignKey:FileID"`
 }
 
 type Slide struct {
 	HomeSliderTable
 	ID     string `json:"id" gorm:"primarykey"`
 	FileID string `json:"file_id"`
-	File   File   `json:"image" gorm:"foreignKey:FileID"`
+
+	File File `json:"image" gorm:"foreignKey:FileID"`
 }

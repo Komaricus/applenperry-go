@@ -15,5 +15,5 @@ type NewsSection struct {
 	URL       string    `json:"url"`
 	Priority  int       `json:"priority"`
 	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

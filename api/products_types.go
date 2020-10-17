@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,7 +11,11 @@ import (
 
 func GetProductsTypes(c *gin.Context) {
 	var pt []model.ProductsType
-	if err := db.DB.Where("is_deleted = false").Find(&pt).Error; err != nil {
+	if err := orm.GetList(db.DB, &pt, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -19,14 +24,13 @@ func GetProductsTypes(c *gin.Context) {
 }
 
 func GetProductsType(c *gin.Context) {
-	var pt model.ProductsType
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
-	if err := db.DB.Where("id = ?", id).Where("is_deleted = false").First(&pt).Error; err != nil {
+	var pt model.ProductsType
+	if err := orm.GetFirst(db.DB, &pt, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -63,10 +67,7 @@ func UpdateProductsType(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Updates(model.ProductsType{
-		ID:   pt.ID,
-		Name: pt.Name,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&pt).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -81,10 +82,38 @@ func DeleteProductsType(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.ProductsType{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Delete(model.ProductsType{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func GetPossibleToDeleteProductsType(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var products []model.Product
+	if err := db.DB.Where("type = ?", id).Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(products) > 0 {
+		deleteConflicts := make(map[string]interface{})
+		deleteConflicts["products"] = products
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":              id,
+			"status":          "not_deletable",
+			"deleteConflicts": deleteConflicts,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deletable"})
 }

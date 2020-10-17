@@ -13,5 +13,5 @@ type ProductsSugarType struct {
 	ID        string    `json:"id" gorm:"primarykey"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

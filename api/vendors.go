@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,10 +11,12 @@ import (
 
 func GetVendors(c *gin.Context) {
 	var vendors []model.Vendor
-
-	q := db.DB.Preload("File").Preload("Country").Where("dbo.vendors.is_deleted = false")
-
-	if err := q.Find(&vendors).Error; err != nil {
+	q := db.DB.Preload("File").Preload("Country")
+	if err := orm.GetList(q, &vendors, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -27,12 +30,9 @@ func GetVendor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
 	var vendor model.Vendor
-
-	q := db.DB.Preload("File").Preload("Country").Where("dbo.vendors.is_deleted = false").Where("id = ?", id)
-
-	if err := q.First(&vendor).Error; err != nil {
+	q := db.DB.Preload("File").Preload("Country")
+	if err := orm.GetFirst(q, &vendor, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -42,7 +42,6 @@ func GetVendor(c *gin.Context) {
 
 func CreateVendor(c *gin.Context) {
 	var vendor model.Vendor
-
 	if err := c.Bind(&vendor); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -53,7 +52,6 @@ func CreateVendor(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	vendor.ID = id.String()
 
 	if err := db.DB.Create(&vendor).Error; err != nil {
@@ -66,20 +64,12 @@ func CreateVendor(c *gin.Context) {
 
 func UpdateVendor(c *gin.Context) {
 	var vendor model.Vendor
-
 	if err := c.Bind(&vendor); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := db.DB.Updates(model.Vendor{
-		ID:          vendor.ID,
-		Name:        vendor.Name,
-		URL:         vendor.URL,
-		FileID:      vendor.FileID,
-		Description: vendor.Description,
-		CountryID:   vendor.CountryID,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&vendor).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -94,10 +84,38 @@ func DeleteVendor(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.Vendor{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Delete(model.Vendor{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func GetPossibleToDeleteVendor(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var products []model.Product
+	if err := db.DB.Where("vendor_id = ?", id).Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(products) > 0 {
+		deleteConflicts := make(map[string]interface{})
+		deleteConflicts["products"] = products
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":              id,
+			"status":          "not_deletable",
+			"deleteConflicts": deleteConflicts,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deletable"})
 }

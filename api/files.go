@@ -33,8 +33,8 @@ func GetFiles(c *gin.Context) {
 
 	offset := (page - 1) * perPage
 
-	q := db.DB.Where("is_deleted = false").Offset(offset).Order("created_at desc")
-	t := db.DB.Model(model.File{}).Where("is_deleted = false").Group("id")
+	q := db.DB.Offset(offset).Order("created_at desc")
+	t := db.DB.Model(model.File{}).Group("id")
 
 	if perPage != -1 {
 		q.Limit(perPage)
@@ -165,14 +165,35 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		}
 	}
 
-	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 {
+	var paf []model.ProductsAndFiles
+	if err := db.DB.Where("file_id = ?", id).Find(&paf).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ids := make([]string, 0, len(paf))
+	for _, n := range paf {
+		ids = append(ids, n.ProductID)
+	}
+
+	var products []model.Product
+	if err := db.DB.Where("id IN (?)", ids).Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 || len(products) > 0 {
+		deleteConflicts := make(map[string]interface{})
+		deleteConflicts["countries"] = countries
+		deleteConflicts["home-slider"] = slides
+		deleteConflicts["vendors"] = vendors
+		deleteConflicts["news"] = news
+		deleteConflicts["products"] = products
+
 		c.JSON(http.StatusOK, gin.H{
-			"id":         id,
-			"status":     "not_deletable",
-			"countries":  countries,
-			"homeSlides": slides,
-			"vendors":    vendors,
-			"news":       news,
+			"id":              id,
+			"status":          "not_deletable",
+			"deleteConflicts": deleteConflicts,
 		})
 		return
 	}

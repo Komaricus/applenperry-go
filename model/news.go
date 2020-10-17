@@ -10,18 +10,19 @@ func (NewsTable) TableName() string {
 
 type News struct {
 	NewsTable
-	ID          string      `json:"id" gorm:"primarykey"`
-	Name        string      `json:"name"`
-	URL         string      `json:"url"`
-	SectionID   string      `json:"sectionId"`
-	Subheader   string      `json:"subheader"`
-	Description string      `json:"description"`
-	FileID      string      `json:"fileId"`
-	Content     string      `json:"content"`
-	CreatedAt   time.Time   `json:"createdAt"`
-	IsDeleted   bool        `json:"isDeleted"`
-	Section     NewsSection `json:"section" gorm:"foreignKey:SectionID"`
-	File        File        `json:"image" gorm:"foreignKey:FileID"`
+	ID          string    `json:"id" gorm:"primarykey"`
+	Name        string    `json:"name"`
+	URL         string    `json:"url"`
+	SectionID   string    `json:"sectionId"`
+	Subheader   string    `json:"subheader"`
+	Description string    `json:"description"`
+	FileID      string    `json:"fileId"`
+	Content     string    `json:"content"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+
+	Section NewsSection `json:"section" gorm:"foreignKey:SectionID"`
+	File    File        `json:"image" gorm:"foreignKey:FileID"`
 }
 
 type NewsAndFilesTable struct{}
@@ -35,5 +36,6 @@ type NewsAndFiles struct {
 	ID     string `gorm:"primarykey"`
 	NewsID string
 	FileID string
-	News   News `gorm:"foreignKey:NewsID"`
+
+	News News `gorm:"foreignKey:NewsID"`
 }

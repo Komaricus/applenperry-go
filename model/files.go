@@ -16,7 +16,7 @@ type File struct {
 	OriginalName string    `json:"originalName"`
 	Size         int64     `json:"size"`
 	CreatedAt    time.Time `json:"createdAt"`
-	IsDeleted    bool      `json:"isDeleted"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type GetFilesResponse struct {

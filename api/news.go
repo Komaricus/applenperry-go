@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -11,8 +12,12 @@ import (
 
 func GetNews(c *gin.Context) {
 	var news []model.News
-	q := db.DB.Preload("File").Preload("Section").Where("dbo.news.is_deleted = false")
-	if err := q.Find(&news).Error; err != nil {
+	q := db.DB.Preload("File").Preload("Section")
+	if err := orm.GetList(q, &news, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -21,16 +26,14 @@ func GetNews(c *gin.Context) {
 }
 
 func GetOneNews(c *gin.Context) {
-	var news model.News
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
-	q := db.DB.Preload("File").Preload("Section").Where("dbo.news.is_deleted = false").Where("id = ?", id)
-
-	if err := q.First(&news).Error; err != nil {
+	var news model.News
+	q := db.DB.Preload("File").Preload("Section")
+	if err := orm.GetFirst(q, &news, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -77,16 +80,7 @@ func UpdateNews(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Updates(model.News{
-		ID:          news.ID,
-		Name:        news.Name,
-		SectionID:   news.SectionID,
-		Subheader:   news.Subheader,
-		Description: news.Description,
-		FileID:      news.FileID,
-		Content:     news.Content,
-		URL:         news.URL,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&news).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -111,7 +105,12 @@ func DeleteNews(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.News{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Where("news_id = ?", id).Delete(model.NewsAndFiles{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DB.Delete(model.News{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

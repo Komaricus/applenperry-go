@@ -12,22 +12,21 @@ func (ProductsTable) TableName() string {
 
 type Product struct {
 	ProductsTable
-	ID          string  `json:"id" gorm:"primarykey"`
-	Name        string  `json:"name"`
-	Subheader   string  `json:"subheader"`
-	Description string  `json:"description"`
-	URL         string  `json:"url"`
-	TypeID      string  `json:"typeId" gorm:"column:type"`
-	Amount      uint    `json:"amount"`
-	Size        float64 `json:"size"`
-	Strength    float64 `json:"strength"`
-	SugarTypeID string  `json:"sugarTypeId" gorm:"column:sugar_type"`
-	Price       float64 `json:"price"`
-	VendorCode  string  `json:"vendorCode"`
-	VendorID    string  `json:"vendorId"`
-
-	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
+	ID          string    `json:"id" gorm:"primarykey"`
+	Name        string    `json:"name"`
+	Subheader   string    `json:"subheader"`
+	Description string    `json:"description"`
+	URL         string    `json:"url"`
+	TypeID      string    `json:"typeId" gorm:"column:type"`
+	Amount      uint      `json:"amount"`
+	Size        float64   `json:"size"`
+	Strength    float64   `json:"strength"`
+	SugarTypeID string    `json:"sugarTypeId" gorm:"column:sugar_type"`
+	Price       float64   `json:"price"`
+	VendorCode  string    `json:"vendorCode"`
+	VendorID    string    `json:"vendorId"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 
 	MainImage         File              `json:"image" gorm:"-"`
 	ProductsType      ProductsType      `json:"productsType" gorm:"foreignKey:TypeID"`
@@ -48,7 +47,8 @@ type ProductsAndFiles struct {
 	ProductID string `gorm:"primaryKey"`
 	FileID    string `gorm:"primaryKey"`
 	Priority  int
-	File      File `gorm:"foreignKey:FileID"`
+
+	File File `gorm:"foreignKey:FileID"`
 }
 
 type ProductsAndCategoriesTable struct{}
@@ -62,5 +62,6 @@ type ProductsAndCategories struct {
 	ProductID  string `gorm:"primaryKey"`
 	CategoryID string `gorm:"primaryKey"`
 	Priority   int
-	Category   Category `gorm:"foreignKey:CategoryID"`
+
+	Category Category `gorm:"foreignKey:CategoryID"`
 }

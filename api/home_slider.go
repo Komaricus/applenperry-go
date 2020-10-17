@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,8 +11,8 @@ import (
 
 func GetSlides(c *gin.Context) {
 	var slides []model.Slide
-	q := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false").Order("priority")
-	if err := q.Find(&slides).Error; err != nil {
+	q := db.DB.Preload("File").Order("priority")
+	if err := orm.GetList(q, &slides, orm.Filters{}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -21,8 +22,11 @@ func GetSlides(c *gin.Context) {
 
 func GetHomeSliderItems(c *gin.Context) {
 	var items []model.HomeSliderItem
-	q := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false")
-	if err := q.Find(&items).Error; err != nil {
+	if err := orm.GetList(db.DB.Preload("File"), &items, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -36,12 +40,8 @@ func GetHomeSliderItem(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
 	var item model.HomeSliderItem
-
-	q := db.DB.Preload("File").Where("dbo.home_slider.is_deleted = false").Where("id = ?", id)
-
-	if err := q.First(&item).Error; err != nil {
+	if err := orm.GetFirst(db.DB.Preload("File"), &item, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -78,12 +78,7 @@ func UpdateHomeSliderItem(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Updates(model.HomeSliderItem{
-		ID:       item.ID,
-		Name:     item.Name,
-		Priority: item.Priority,
-		FileID:   item.FileID,
-	}).Error; err != nil {
+	if err := db.DB.Updates(&item).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -98,7 +93,7 @@ func DeleteHomeSliderItem(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.HomeSliderItem{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Delete(model.HomeSliderItem{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
@@ -10,8 +11,12 @@ import (
 
 func GetProducts(c *gin.Context) {
 	var products []model.Product
-	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File").Where("is_deleted = false")
-	if err := q.Find(&products).Error; err != nil {
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File")
+	if err := orm.GetList(q, &products, orm.Filters{
+		Search:     c.Query("search"),
+		SortColumn: c.Query("sort"),
+		SortOrder:  c.Query("order"),
+	}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -47,10 +52,9 @@ func GetProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-
 	var p model.Product
-	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File").Where("is_deleted = false")
-	if err := q.Where("id = ?", id).Find(&p).Error; err != nil {
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File")
+	if err := orm.GetFirst(q, &p, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -118,6 +122,11 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("product_id = ?", p.ID).Delete(model.ProductsAndCategories{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := db.DB.Updates(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -138,7 +147,17 @@ func DeleteProduct(c *gin.Context) {
 		return
 	}
 
-	if err := db.DB.Model(model.Product{ID: id}).Update("is_deleted", true).Error; err != nil {
+	if err := db.DB.Where("product_id = ?", id).Delete(model.ProductsAndFiles{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DB.Where("product_id = ?", id).Delete(model.ProductsAndCategories{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DB.Delete(model.Product{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -17,7 +17,8 @@ type Vendor struct {
 	Description string    `json:"description"`
 	CountryID   string    `json:"countryId"`
 	CreatedAt   time.Time `json:"createdAt"`
-	IsDeleted   bool      `json:"isDeleted"`
-	File        File      `json:"image" gorm:"foreignKey:FileID"`
-	Country     Country   `json:"country" gorm:"foreignKey:CountryID"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+
+	File    File    `json:"image" gorm:"foreignKey:FileID"`
+	Country Country `json:"country" gorm:"foreignKey:CountryID"`
 }

@@ -16,5 +16,5 @@ type Category struct {
 	Description string    `json:"description"`
 	ParentID    *string   `json:"parentId"`
 	CreatedAt   time.Time `json:"createdAt"`
-	IsDeleted   bool      `json:"isDeleted"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
