@@ -17,7 +17,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 
 	r := gin.Default()
 	conf := cors.DefaultConfig()
-	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru", "http://localhost:8080"}
+	conf.AllowOrigins = []string{"https://applenperry.ru", "https://www.applenperry.ru"}
 	conf.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 
 	r.Use(cors.New(conf))
@@ -154,21 +154,36 @@ func Init(configuration config.Configuration) *gin.Engine {
 			}
 		}
 
-		files := appleApi.Group("/files")
-
-		files.Use(authMiddleware.MiddlewareFunc())
+		products := appleApi.Group("/products")
 		{
-			files.POST("/upload", api.UploadFiles)
-			files.GET("/", api.GetFiles)
-			files.GET("/deletable/:id", api.GetPossibleToDeleteFile)
-			files.DELETE("/", api.DeleteFile)
+			products.Use(authMiddleware.MiddlewareFunc())
+			{
+				products.GET("/", api.GetProducts)
+				products.GET("/:id", api.GetProduct)
+				products.POST("/", api.CreateProduct)
+				products.PUT("/", api.UpdateProduct)
+				products.DELETE("/:id", api.DeleteProduct)
+			}
+		}
+
+		files := appleApi.Group("/files")
+		{
+			files.Use(authMiddleware.MiddlewareFunc())
+			{
+				files.POST("/upload", api.UploadFiles)
+				files.GET("/", api.GetFiles)
+				files.GET("/deletable/:id", api.GetPossibleToDeleteFile)
+				files.DELETE("/", api.DeleteFile)
+			}
 		}
 
 		admins := appleApi.Group("/admins")
-		admins.Use(authMiddleware.MiddlewareFunc())
 		{
-			admins.POST("/", api.CreateAdmin)
-			admins.GET("/heartbeat", api.CheckHeartbeat)
+			admins.Use(authMiddleware.MiddlewareFunc())
+			{
+				admins.POST("/", api.CreateAdmin)
+				admins.GET("/heartbeat", api.CheckHeartbeat)
+			}
 		}
 	}
 
