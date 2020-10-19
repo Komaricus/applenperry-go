@@ -34,6 +34,14 @@ func GetList(tx *gorm.DB, target interface{}, filter Filters) error {
 		q.Order("updated_at desc")
 	}
 
+	if filter.SortColumn == "name" && filter.SortOrder == "desc" {
+		q.Order("name desc")
+	}
+
+	if filter.SortColumn == "name" && filter.SortOrder == "asc" {
+		q.Order("name asc")
+	}
+
 	if err := q.Find(target).Error; err != nil {
 		return err
 	}
