@@ -13,6 +13,7 @@ type Country struct {
 	ID        string    `json:"id" gorm:"primarykey"`
 	Name      string    `json:"name"`
 	Flag      string    `json:"flag"`
+	URL       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 

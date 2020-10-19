@@ -12,6 +12,7 @@ type ProductsSugarType struct {
 	ProductsSugarTypesTable
 	ID        string    `json:"id" gorm:"primarykey"`
 	Name      string    `json:"name"`
+	URL       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
