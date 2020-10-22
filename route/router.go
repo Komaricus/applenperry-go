@@ -43,7 +43,8 @@ func Init(configuration config.Configuration) *gin.Engine {
 		open := appleApi.Group("/open")
 		{
 			open.GET("/", api.Home)
-			open.GET("slides", api.GetSlides)
+			open.GET("/slides", api.GetSlides)
+			open.GET("/shop-slides", api.GetShopSlides)
 		}
 
 		categories := appleApi.Group("/categories")
@@ -93,6 +94,18 @@ func Init(configuration config.Configuration) *gin.Engine {
 				homeSlider.POST("/", api.CreateHomeSliderItem)
 				homeSlider.PUT("/", api.UpdateHomeSliderItem)
 				homeSlider.DELETE("/:id", api.DeleteHomeSliderItem)
+			}
+		}
+
+		shopSlider := appleApi.Group("/shop-slider")
+		{
+			shopSlider.Use(authMiddleware.MiddlewareFunc())
+			{
+				shopSlider.GET("/", api.GetShopSliderItems)
+				shopSlider.GET("/:id", api.GetShopSliderItem)
+				shopSlider.POST("/", api.CreateShopSliderItem)
+				shopSlider.PUT("/", api.UpdateShopSliderItem)
+				shopSlider.DELETE("/:id", api.DeleteShopSliderItem)
 			}
 		}
 

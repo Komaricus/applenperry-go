@@ -182,13 +182,20 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		return
 	}
 
-	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 || len(products) > 0 {
+	var shopSlides []model.ShopSliderItem
+	if err := db.DB.Where("file_id = ?", id).Find(&shopSlides).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 || len(products) > 0 || len(shopSlides) > 0 {
 		deleteConflicts := make(map[string]interface{})
 		deleteConflicts["countries"] = countries
 		deleteConflicts["home-slider"] = slides
 		deleteConflicts["vendors"] = vendors
 		deleteConflicts["news"] = news
 		deleteConflicts["products"] = products
+		deleteConflicts["shop-slider"] = shopSlides
 
 		c.JSON(http.StatusOK, gin.H{
 			"id":              id,

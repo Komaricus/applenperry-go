@@ -9,8 +9,8 @@ import (
 	"net/http"
 )
 
-func GetSlides(c *gin.Context) {
-	var slides []model.Slide
+func GetShopSlides(c *gin.Context) {
+	var slides []model.ShopSlide
 	q := db.DB.Preload("File").Order("priority")
 	if err := q.Find(&slides).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -20,8 +20,8 @@ func GetSlides(c *gin.Context) {
 	c.JSON(http.StatusOK, slides)
 }
 
-func GetHomeSliderItems(c *gin.Context) {
-	var items []model.HomeSliderItem
+func GetShopSliderItems(c *gin.Context) {
+	var items []model.ShopSliderItem
 	if err := orm.GetList(db.DB.Preload("File"), &items, orm.Filters{
 		Search:     c.Query("search"),
 		SortColumn: c.Query("sort"),
@@ -34,13 +34,13 @@ func GetHomeSliderItems(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
-func GetHomeSliderItem(c *gin.Context) {
+func GetShopSliderItem(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
-	var item model.HomeSliderItem
+	var item model.ShopSliderItem
 	if err := orm.GetFirst(db.DB.Preload("File"), &item, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -49,8 +49,8 @@ func GetHomeSliderItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
-func CreateHomeSliderItem(c *gin.Context) {
-	var item model.HomeSliderItem
+func CreateShopSliderItem(c *gin.Context) {
+	var item model.ShopSliderItem
 	if err := c.Bind(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -71,8 +71,8 @@ func CreateHomeSliderItem(c *gin.Context) {
 	c.JSON(http.StatusCreated, item)
 }
 
-func UpdateHomeSliderItem(c *gin.Context) {
-	var item model.HomeSliderItem
+func UpdateShopSliderItem(c *gin.Context) {
+	var item model.ShopSliderItem
 	if err := c.Bind(&item); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -86,14 +86,14 @@ func UpdateHomeSliderItem(c *gin.Context) {
 	c.JSON(http.StatusOK, item)
 }
 
-func DeleteHomeSliderItem(c *gin.Context) {
+func DeleteShopSliderItem(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
 		return
 	}
 
-	if err := db.DB.Delete(model.HomeSliderItem{ID: id}).Error; err != nil {
+	if err := db.DB.Delete(model.ShopSliderItem{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
