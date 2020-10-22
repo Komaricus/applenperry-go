@@ -53,8 +53,8 @@ func GetAuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
 		Realm:       "applenperry",
 		Key:         []byte(os.Getenv("ACCESS_SECRET")),
-		Timeout:     10 * time.Minute,
-		MaxRefresh:  time.Hour,
+		Timeout:     time.Hour,
+		MaxRefresh:  8 * time.Hour,
 		IdentityKey: identityKey,
 		PayloadFunc: func(data interface{}) jwt.MapClaims {
 			if v, ok := data.(*User); ok {
