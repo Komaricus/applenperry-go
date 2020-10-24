@@ -65,3 +65,13 @@ type ProductsAndCategories struct {
 
 	Category Category `gorm:"foreignKey:CategoryID"`
 }
+
+type ProductsListResponse struct {
+	ProductsTable
+	ID    string  `json:"id" gorm:"primarykey"`
+	Name  string  `json:"name"`
+	URL   string  `json:"url"`
+	Price float64 `json:"price"`
+
+	MainImage File `json:"image" gorm:"-"`
+}

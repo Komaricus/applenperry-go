@@ -9,6 +9,28 @@ import (
 	"net/http"
 )
 
+func GetNewProducts(c *gin.Context) {
+	var products []model.ProductsListResponse
+	if err := db.DB.Order("created_at desc").Limit(10).Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i, p := range products {
+		var paf []model.ProductsAndFiles
+		if err := db.DB.Where("product_id = ?", p.ID).Order("priority").Preload("File").Find(&paf).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		if len(paf) > 0 {
+			products[i].MainImage = paf[0].File
+		}
+	}
+
+	c.JSON(http.StatusOK, products)
+}
+
 func GetProducts(c *gin.Context) {
 	var products []model.Product
 	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File")

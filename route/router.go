@@ -45,6 +45,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			open.GET("/", api.Home)
 			open.GET("/slides", api.GetSlides)
 			open.GET("/shop-slides", api.GetShopSlides)
+			open.GET("/products", api.GetNewProducts)
 		}
 
 		categories := appleApi.Group("/categories")
