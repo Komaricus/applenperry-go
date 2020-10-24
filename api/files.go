@@ -3,9 +3,11 @@ package api
 import (
 	"fmt"
 	"github.com/applenperry-go/db"
+	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -61,6 +63,37 @@ func GetFiles(c *gin.Context) {
 		Total: count,
 		Files: files,
 	})
+}
+
+func DownloadFile(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var f model.File
+	if err := orm.GetFirst(db.DB, &f, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	basePath := os.Getenv("IMAGES_PATH")
+	file, err := os.Open(basePath + f.Path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer file.Close()
+
+	c.Writer.Header().Add("Content-type", "application/octet-stream")
+	c.Writer.Header().Add("Content-Disposition", fmt.Sprintf(`attachment; filename=%s`, f.OriginalName))
+
+	_, err = io.Copy(c.Writer, file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 }
 
 func UploadFiles(c *gin.Context) {

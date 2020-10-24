@@ -194,6 +194,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 				files.GET("/", api.GetFiles)
 				files.GET("/deletable/:id", api.GetPossibleToDeleteFile)
 				files.DELETE("/", api.DeleteFile)
+				files.GET("/download/:id", api.DownloadFile)
 			}
 		}
 
