@@ -75,3 +75,8 @@ type ProductsListResponse struct {
 
 	MainImage File `json:"image" gorm:"-"`
 }
+
+type GetProductsResponse struct {
+	Products []Product `json:"products"`
+	Total    int64     `json:"total"`
+}

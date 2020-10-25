@@ -10,6 +10,21 @@ import (
 	"net/http"
 )
 
+func GetCategoryByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var category model.Category
+	if err := db.DB.Where("url = ?", url).First(&category).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, category)
+}
+
 func GetCategoriesWithChild(c *gin.Context) {
 	var categories []model.CategoryWithChild
 	q := db.DB.Preload("Child", func(db *gorm.DB) *gorm.DB {

@@ -7,7 +7,132 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"strconv"
 )
+
+func GetProductsWithPaginate(c *gin.Context) {
+	// pagination
+	page := 1
+	pageParam := c.Query("page")
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	perPage := -1
+	perPageParam := c.Query("perPage")
+	if perPageParam != "" {
+		perPage, _ = strconv.Atoi(perPageParam)
+	}
+	offset := (page - 1) * perPage
+
+	q := db.DB.Offset(offset)
+	t := db.DB.Model(model.Product{}).Group("dbo.products.id")
+
+	if perPage != -1 {
+		q.Limit(perPage)
+	}
+
+	// search
+	search := c.Query("search")
+	if search != "" {
+		search = "%" + search + "%"
+		q.Where("name LIKE ?", search)
+		t.Where("name LIKE ?", search)
+	}
+
+	// sort
+	sort := c.Query("sort")
+	column := c.Query("column")
+	if column == "created_at" && sort == "desc" {
+		q.Order("created_at desc")
+	}
+	if column == "created_at" && sort == "asc" {
+		q.Order("created_at asc")
+	}
+	if column == "price" && sort == "desc" {
+		q.Order("price desc")
+	}
+	if column == "price" && sort == "asc" {
+		q.Order("price asc")
+	}
+
+	q.Order("dbo.products.name")
+
+	// filter
+	categoryUrl := c.Query("category")
+	if categoryUrl != "" {
+		var category model.Category
+		if err := db.DB.Where("url = ?", categoryUrl).First(&category).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		var pac []model.ProductsAndCategories
+		if err := db.DB.Where("category_id = ?", category.ID).Find(&pac).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		productIDs := make([]string, 0, len(pac))
+		for _, p := range pac {
+			productIDs = append(productIDs, p.ProductID)
+		}
+
+		q.Where("id IN (?)", productIDs)
+		t.Where("id IN (?)", productIDs)
+	}
+
+	countryUrl := c.Query("country")
+	if countryUrl != "" {
+		var country model.Country
+		if err := db.DB.Where("url = ?", countryUrl).First(&country).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		q.Joins("Vendor").Where("\"Vendor\".country_id = ?", country.ID)
+		t.Joins("Vendor").Where("\"Vendor\".country_id = ?", country.ID)
+	}
+
+	typeUrl := c.Query("type")
+	if typeUrl != "" {
+		q.Joins("ProductsType").Where("\"ProductsType\".url = ?", typeUrl)
+		t.Joins("ProductsType").Where("\"ProductsType\".url = ?", typeUrl)
+	}
+
+	sugarUrl := c.Query("sugar")
+	if sugarUrl != "" {
+		q.Joins("ProductsSugarType").Where("\"ProductsSugarType\".url = ?", sugarUrl)
+		t.Joins("ProductsSugarType").Where("\"ProductsSugarType\".url = ?", sugarUrl)
+	}
+
+	var products []model.Product
+	if err := q.Find(&products).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for i, p := range products {
+		var paf model.ProductsAndFiles
+		if err := db.DB.Where("priority = 0").Where("product_id = ?", p.ID).Preload("File").First(&paf).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		products[i].MainImage = paf.File
+	}
+
+	var count int64
+	if err := t.Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.GetProductsResponse{
+		Products: products,
+		Total:    count,
+	})
+}
 
 func GetNewProducts(c *gin.Context) {
 	var products []model.ProductsListResponse

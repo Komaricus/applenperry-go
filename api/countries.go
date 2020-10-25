@@ -9,6 +9,21 @@ import (
 	"net/http"
 )
 
+func GetCountryByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var country model.Country
+	if err := db.DB.Where("url = ?", url).First(&country).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, country)
+}
+
 func GetCountries(c *gin.Context) {
 	var countries []model.Country
 	if err := orm.GetList(db.DB.Preload("File"), &countries, orm.Filters{

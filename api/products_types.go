@@ -9,6 +9,21 @@ import (
 	"net/http"
 )
 
+func GetProductsTypeByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var pt model.ProductsType
+	if err := db.DB.Where("url = ?", url).First(&pt).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, pt)
+}
+
 func GetProductsTypes(c *gin.Context) {
 	var pt []model.ProductsType
 	if err := orm.GetList(db.DB, &pt, orm.Filters{
