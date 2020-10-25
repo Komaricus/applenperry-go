@@ -70,8 +70,7 @@ func GetProductsWithPaginate(c *gin.Context) {
 	}
 
 	// search
-	search := c.Query("search")
-	if search != "" {
+	if search := c.Query("search"); search != "" {
 		search = "%" + search + "%"
 		q.Where("name LIKE ?", search)
 		t.Where("name LIKE ?", search)
@@ -95,9 +94,8 @@ func GetProductsWithPaginate(c *gin.Context) {
 
 	q.Order("dbo.products.name")
 
-	// filter
-	categoryUrl := c.Query("category")
-	if categoryUrl != "" {
+	// filters
+	if categoryUrl := c.Query("category"); categoryUrl != "" {
 		var category model.Category
 		if err := db.DB.Where("url = ?", categoryUrl).First(&category).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -119,8 +117,7 @@ func GetProductsWithPaginate(c *gin.Context) {
 		t.Where("id IN (?)", productIDs)
 	}
 
-	countryUrl := c.Query("country")
-	if countryUrl != "" {
+	if countryUrl := c.Query("country"); countryUrl != "" {
 		var country model.Country
 		if err := db.DB.Where("url = ?", countryUrl).First(&country).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -131,16 +128,24 @@ func GetProductsWithPaginate(c *gin.Context) {
 		t.Joins("Vendor").Where("\"Vendor\".country_id = ?", country.ID)
 	}
 
-	typeUrl := c.Query("type")
-	if typeUrl != "" {
+	if typeUrl := c.Query("type"); typeUrl != "" {
 		q.Joins("ProductsType").Where("\"ProductsType\".url = ?", typeUrl)
 		t.Joins("ProductsType").Where("\"ProductsType\".url = ?", typeUrl)
 	}
 
-	sugarUrl := c.Query("sugar")
-	if sugarUrl != "" {
+	if sugarUrl := c.Query("sugar"); sugarUrl != "" {
 		q.Joins("ProductsSugarType").Where("\"ProductsSugarType\".url = ?", sugarUrl)
 		t.Joins("ProductsSugarType").Where("\"ProductsSugarType\".url = ?", sugarUrl)
+	}
+
+	if vendorUrl := c.Query("vendor"); vendorUrl != "" {
+		q.Joins("Vendor").Where("\"Vendor\".url = ?", vendorUrl)
+		t.Joins("Vendor").Where("\"Vendor\".url = ?", vendorUrl)
+	}
+
+	if except := c.Query("except"); except != "" {
+		q.Where("dbo.products.id NOT IN (?)", except)
+		t.Where("dbo.products.id NOT IN (?)", except)
 	}
 
 	var products []model.Product
