@@ -10,6 +10,43 @@ import (
 	"strconv"
 )
 
+func GetProductByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var p model.Product
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.Country").Preload("Vendor.Country.File")
+	if err := q.Where("url = ?", url).First(&p).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var paf []model.ProductsAndFiles
+	if err := db.DB.Where("product_id = ?", p.ID).Order("priority").Preload("File").Find(&paf).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	for _, f := range paf {
+		p.Files = append(p.Files, f.File)
+	}
+	if len(p.Files) > 0 {
+		p.MainImage = p.Files[0]
+	}
+
+	var pac []model.ProductsAndCategories
+	if err := db.DB.Where("product_id = ?", p.ID).Order("priority").Preload("Category").Find(&pac).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	for _, cat := range pac {
+		p.Categories = append(p.Categories, cat.Category)
+	}
+
+	c.JSON(http.StatusOK, p)
+}
+
 func GetProductsWithPaginate(c *gin.Context) {
 	// pagination
 	page := 1
@@ -132,28 +169,6 @@ func GetProductsWithPaginate(c *gin.Context) {
 		Products: products,
 		Total:    count,
 	})
-}
-
-func GetNewProducts(c *gin.Context) {
-	var products []model.ProductsListResponse
-	if err := db.DB.Order("created_at desc").Limit(10).Find(&products).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	for i, p := range products {
-		var paf []model.ProductsAndFiles
-		if err := db.DB.Where("product_id = ?", p.ID).Order("priority").Preload("File").Find(&paf).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		if len(paf) > 0 {
-			products[i].MainImage = paf[0].File
-		}
-	}
-
-	c.JSON(http.StatusOK, products)
 }
 
 func GetProducts(c *gin.Context) {
