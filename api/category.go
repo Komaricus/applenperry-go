@@ -6,8 +6,103 @@ import (
 	"github.com/applenperry-go/model"
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
+	"gorm.io/gorm"
 	"net/http"
 )
+
+func GetCategoriesWithChild(c *gin.Context) {
+	var categories []model.CategoryWithChild
+	q := db.DB.Preload("Child", func(db *gorm.DB) *gorm.DB {
+		return db.Order("name")
+	}).Order("created_at desc").Where("parent_id is null")
+	if err := q.Find(&categories).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	countryCategoryID := "countries"
+	countryCategory := model.CategoryWithChild{
+		ID:       countryCategoryID,
+		Name:     "Регион",
+		URL:      countryCategoryID,
+		ParentID: nil,
+		Child:    nil,
+	}
+
+	var countries []model.Country
+	if err := db.DB.Order("name").Find(&countries).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, country := range countries {
+		countryCategory.Child = append(countryCategory.Child, model.CategoryWithChild{
+			ID:       country.ID,
+			Name:     country.Name,
+			URL:      country.URL,
+			ParentID: &countryCategoryID,
+			Child:    nil,
+		})
+	}
+
+	categories = append(categories, countryCategory)
+
+	productTypeID := "product-type"
+	productTypeCategory := model.CategoryWithChild{
+		ID:       productTypeID,
+		Name:     "Тип",
+		URL:      productTypeID,
+		ParentID: nil,
+		Child:    nil,
+	}
+
+	var productsTypes []model.ProductsType
+	if err := db.DB.Order("name").Find(&productsTypes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, pt := range productsTypes {
+		productTypeCategory.Child = append(productTypeCategory.Child, model.CategoryWithChild{
+			ID:       pt.ID,
+			Name:     pt.Name,
+			URL:      pt.URL,
+			ParentID: &productTypeID,
+			Child:    nil,
+		})
+	}
+
+	categories = append(categories, productTypeCategory)
+
+	sugarTypeID := "sugar-type"
+	sugarTypeCategory := model.CategoryWithChild{
+		ID:       sugarTypeID,
+		Name:     "Сахар",
+		URL:      sugarTypeID,
+		ParentID: nil,
+		Child:    nil,
+	}
+
+	var sugarTypes []model.ProductsSugarType
+	if err := db.DB.Order("name").Find(&sugarTypes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, st := range sugarTypes {
+		sugarTypeCategory.Child = append(sugarTypeCategory.Child, model.CategoryWithChild{
+			ID:       st.ID,
+			Name:     st.Name,
+			URL:      st.URL,
+			ParentID: &sugarTypeID,
+			Child:    nil,
+		})
+	}
+
+	categories = append(categories, sugarTypeCategory)
+
+	c.JSON(http.StatusOK, categories)
+}
 
 func GetCategories(c *gin.Context) {
 	var categories []model.Category

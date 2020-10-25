@@ -18,3 +18,13 @@ type Category struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
+
+type CategoryWithChild struct {
+	CategoriesTable
+	ID       string  `json:"id" gorm:"primarykey"`
+	Name     string  `json:"name"`
+	URL      string  `json:"url"`
+	ParentID *string `json:"parentId"`
+
+	Child []CategoryWithChild `json:"child" gorm:"foreignKey:ParentID"`
+}
