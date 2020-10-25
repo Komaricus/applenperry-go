@@ -9,6 +9,32 @@ import (
 	"net/http"
 )
 
+func GetVendorByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var v model.Vendor
+	if err := db.DB.Where("url = ?", url).First(&v).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, v)
+}
+
+func GetVendorsList(c *gin.Context) {
+	var vendors []model.Vendor
+	q := db.DB.Preload("File").Preload("Country")
+	if err := q.Order("name").Find(&vendors).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, vendors)
+}
+
 func GetVendors(c *gin.Context) {
 	var vendors []model.Vendor
 	q := db.DB.Preload("File").Preload("Country")
