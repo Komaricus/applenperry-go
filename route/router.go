@@ -54,6 +54,13 @@ func Init(configuration config.Configuration) *gin.Engine {
 			open.GET("/products/:url", api.GetProductByURL)
 			open.GET("/vendors", api.GetVendorsList)
 			open.GET("/vendors/:url", api.GetVendorByURL)
+			open.POST("/order", api.CreateOrder)
+		}
+
+		orders := appleApi.Group("/orders")
+		{
+			orders.GET("/", api.GetOrders)
+			orders.GET("/:id", api.GetOrder)
 		}
 
 		categories := appleApi.Group("/categories")
@@ -191,6 +198,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 				products.POST("/", api.CreateProduct)
 				products.PUT("/", api.UpdateProduct)
 				products.DELETE("/:id", api.DeleteProduct)
+				products.GET("/:id/deletable", api.GetPossibleToDeleteProduct)
 			}
 		}
 

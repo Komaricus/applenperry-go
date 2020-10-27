@@ -17,7 +17,7 @@ func GetProductByURL(c *gin.Context) {
 		return
 	}
 	var p model.Product
-	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.Country").Preload("Vendor.Country.File")
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.Country").Preload("Vendor.Country.File").Preload("MainImage")
 	if err := q.Where("url = ?", url).First(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -30,9 +30,6 @@ func GetProductByURL(c *gin.Context) {
 	}
 	for _, f := range paf {
 		p.Files = append(p.Files, f.File)
-	}
-	if len(p.Files) > 0 {
-		p.MainImage = p.Files[0]
 	}
 
 	var pac []model.ProductsAndCategories
@@ -149,19 +146,9 @@ func GetProductsWithPaginate(c *gin.Context) {
 	}
 
 	var products []model.Product
-	if err := q.Find(&products).Error; err != nil {
+	if err := q.Preload("MainImage").Find(&products).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
-	}
-
-	for i, p := range products {
-		var paf model.ProductsAndFiles
-		if err := db.DB.Where("priority = 0").Where("product_id = ?", p.ID).Preload("File").First(&paf).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		products[i].MainImage = paf.File
 	}
 
 	var count int64
@@ -178,7 +165,7 @@ func GetProductsWithPaginate(c *gin.Context) {
 
 func GetProducts(c *gin.Context) {
 	var products []model.Product
-	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File")
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File").Preload("MainImage")
 	if err := orm.GetList(q, &products, orm.Filters{
 		Search:     c.Query("search"),
 		SortColumn: c.Query("sort"),
@@ -195,9 +182,6 @@ func GetProducts(c *gin.Context) {
 		}
 		for _, f := range paf {
 			products[i].Files = append(products[i].Files, f.File)
-		}
-		if len(products[i].Files) > 0 {
-			products[i].MainImage = products[i].Files[0]
 		}
 
 		var pac []model.ProductsAndCategories
@@ -220,7 +204,7 @@ func GetProduct(c *gin.Context) {
 		return
 	}
 	var p model.Product
-	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File")
+	q := db.DB.Preload("ProductsType").Preload("ProductsSugarType").Preload("Vendor").Preload("Vendor.File").Preload("MainImage")
 	if err := orm.GetFirst(q, &p, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -233,9 +217,6 @@ func GetProduct(c *gin.Context) {
 	}
 	for _, f := range paf {
 		p.Files = append(p.Files, f.File)
-	}
-	if len(p.Files) > 0 {
-		p.MainImage = p.Files[0]
 	}
 
 	var pac []model.ProductsAndCategories
@@ -330,6 +311,34 @@ func DeleteProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func GetPossibleToDeleteProduct(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+
+	var orders []model.OrderAndProduct
+	if err := db.DB.Where("product_id = ?", id).Preload("Order").Find(&orders).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if len(orders) > 0 {
+		deleteConflicts := make(map[string]interface{})
+		deleteConflicts["orders"] = orders
+
+		c.JSON(http.StatusOK, gin.H{
+			"id":              id,
+			"status":          "not_deletable",
+			"deleteConflicts": deleteConflicts,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deletable"})
 }
 
 func updatePriorities(product model.Product) error {

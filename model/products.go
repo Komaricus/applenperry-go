@@ -27,8 +27,9 @@ type Product struct {
 	VendorID    string    `json:"vendorId"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	FileID      string    `json:"-" gorm:"column:main_image"`
 
-	MainImage         File              `json:"image" gorm:"-"`
+	MainImage         File              `json:"image" gorm:"foreignKey:FileID"`
 	ProductsType      ProductsType      `json:"productsType" gorm:"foreignKey:TypeID"`
 	ProductsSugarType ProductsSugarType `json:"productsSugarType" gorm:"foreignKey:SugarTypeID"`
 	Vendor            Vendor            `json:"vendor" gorm:"foreignKey:VendorID"`
