@@ -75,3 +75,24 @@ func CreateOrder(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, resp)
 }
+
+func DeleteProductFromOrder(c *gin.Context) {
+	productID := c.Query("productId")
+	if productID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "productId query param required"})
+		return
+	}
+
+	orderID := c.Query("orderId")
+	if orderID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "orderId query param required"})
+		return
+	}
+
+	if err := db.DB.Where("product_id = ?", productID).Where("order_id = ?", orderID).Delete(model.OrderAndProduct{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"productId": productID, "orderId": orderID, "status": "deleted"})
+}

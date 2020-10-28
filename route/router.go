@@ -61,6 +61,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 		{
 			orders.GET("/", api.GetOrders)
 			orders.GET("/:id", api.GetOrder)
+			orders.DELETE("/product", api.DeleteProductFromOrder)
 		}
 
 		categories := appleApi.Group("/categories")
