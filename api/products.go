@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/applenperry-go/db"
 	"github.com/applenperry-go/db/orm"
 	"github.com/applenperry-go/model"
@@ -245,6 +246,12 @@ func CreateProduct(c *gin.Context) {
 	}
 	p.ID = id.String()
 
+	if len(p.Files) == 0 || len(p.Categories) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors.New("product images and categories can not be empty")})
+		return
+	}
+	p.FileID = p.Files[0].ID
+
 	if err := db.DB.Create(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -274,6 +281,12 @@ func UpdateProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	if len(p.Files) == 0 || len(p.Categories) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errors.New("product images and categories can not be empty")})
+		return
+	}
+	p.FileID = p.Files[0].ID
 
 	if err := db.DB.Updates(&p).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
