@@ -67,5 +67,11 @@ func CreateOrder(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusCreated, order)
+	var resp model.GetOrder
+	if err := db.DB.Where("id = ?", order.ID).Find(&resp).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, resp)
 }
