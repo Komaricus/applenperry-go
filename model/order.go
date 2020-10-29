@@ -39,6 +39,13 @@ type DeleteOrder struct {
 	ID string `json:"id" gorm:"primarykey"`
 }
 
+type UpdateOrder struct {
+	OrdersTable
+	ID        string    `json:"id" gorm:"primarykey"`
+	Status    string    `json:"status"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 type OrdersAndProductsTable struct{}
 
 func (OrdersAndProductsTable) TableName() string {

@@ -92,6 +92,21 @@ func CreateOrder(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+func UpdateOrderStatus(c *gin.Context) {
+	var update model.UpdateOrder
+	if err := c.Bind(&update); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := db.DB.Updates(&update).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, update)
+}
+
 func DeleteOrder(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
