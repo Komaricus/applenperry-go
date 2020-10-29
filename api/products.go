@@ -293,6 +293,13 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
+	if p.Amount == 0 {
+		if err := db.DB.Model(model.Product{}).Where("id = ?", p.ID).Update("amount", 0).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
 	if err := updatePriorities(p); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

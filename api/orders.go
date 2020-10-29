@@ -65,6 +65,21 @@ func CreateOrder(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		var product model.Product
+		if err := db.DB.Where("id = ?", p.ProductID).First(&product).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		count := product.Amount - p.ProductCount
+		if count < 0 {
+			count = 0
+		}
+		if err := db.DB.Where("id = ?", p.ProductID).Update("amount", count).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	var resp model.GetOrder

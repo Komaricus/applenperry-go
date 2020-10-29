@@ -44,7 +44,7 @@ type OrderAndProduct struct {
 	OrdersAndProductsTable
 	OrderID      string `json:"orderId"`
 	ProductID    string `json:"productId"`
-	ProductCount int    `json:"productCount"`
+	ProductCount uint   `json:"productCount"`
 
 	Product Product  `json:"product,omitempty" gorm:"foreignKey:ProductID"`
 	Order   GetOrder `json:"order,omitempty" gorm:"foreignKey:OrderID"`
