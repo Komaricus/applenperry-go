@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"strconv"
 )
 
 func GetOrders(c *gin.Context) {
@@ -104,9 +105,29 @@ func DeleteProductFromOrder(c *gin.Context) {
 		return
 	}
 
+	productAmount, err := strconv.Atoi(c.Query("productAmount"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := db.DB.Where("product_id = ?", productID).Where("order_id = ?", orderID).Delete(model.OrderAndProduct{}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
+	}
+
+	if productAmount > 0 {
+		var product model.Product
+		if err := db.DB.Where("id = ?", productID).First(&product).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		amount := product.Amount + uint(productAmount)
+		if err := db.DB.Model(model.Product{}).Where("id = ?", productID).Update("amount", amount).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"productId": productID, "orderId": orderID, "status": "deleted"})
