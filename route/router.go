@@ -71,6 +71,15 @@ func Init(configuration config.Configuration) *gin.Engine {
 			orders.PUT("/", api.UpdateOrderStatus)
 		}
 
+		docs := appleApi.Group("/docs")
+		{
+			docs.GET("/", api.GetDocsList)
+			docs.GET("/:id", api.GetDocument)
+			docs.POST("/", api.CreateDocument)
+			docs.PUT("/", api.UpdateDocument)
+			docs.DELETE("/:id", api.DeleteDocument)
+		}
+
 		categories := appleApi.Group("/categories")
 		{
 			categories.Use(authMiddleware.MiddlewareFunc())
