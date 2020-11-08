@@ -9,6 +9,31 @@ import (
 	"net/http"
 )
 
+func GetDocumentByURL(c *gin.Context) {
+	url := c.Param("url")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url param required"})
+		return
+	}
+	var doc model.Document
+	if err := db.DB.Where("url = ?", url).First(&doc).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, doc)
+}
+
+func GetOpenDocs(c *gin.Context) {
+	var docs []model.Document
+	if err := db.DB.Order("created_at desc").Find(&docs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, docs)
+}
+
 func GetDocsList(c *gin.Context) {
 	var docs []model.Document
 	if err := orm.GetList(db.DB, &docs, orm.Filters{
