@@ -198,6 +198,17 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		}
 	}
 
+	var paaf []model.PageAndFile
+	if err := db.DB.Joins("Page").Where("dbo.pages_and_files.file_id = ?", id).Find(&paaf).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var pages []model.Page
+	for _, p := range paaf {
+		pages = append(pages, p.Page)
+	}
+
 	var paf []model.ProductsAndFiles
 	if err := db.DB.Where("file_id = ?", id).Find(&paf).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -221,7 +232,8 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		return
 	}
 
-	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 || len(news) > 0 || len(products) > 0 || len(shopSlides) > 0 {
+	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 ||
+		len(news) > 0 || len(products) > 0 || len(shopSlides) > 0 || len(pages) > 0 {
 		deleteConflicts := make(map[string]interface{})
 		deleteConflicts["countries"] = countries
 		deleteConflicts["home-slider"] = slides
@@ -229,6 +241,7 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		deleteConflicts["news"] = news
 		deleteConflicts["products"] = products
 		deleteConflicts["shop-slider"] = shopSlides
+		deleteConflicts["pages"] = pages
 
 		c.JSON(http.StatusOK, gin.H{
 			"id":              id,

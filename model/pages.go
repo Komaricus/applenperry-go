@@ -17,3 +17,18 @@ type Page struct {
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
+
+type PagesAndFilesTable struct{}
+
+func (PagesAndFilesTable) TableName() string {
+	return "dbo.pages_and_files"
+}
+
+type PageAndFile struct {
+	PagesAndFilesTable
+	ID     string `gorm:"primarykey"`
+	PageID string
+	FileID string
+
+	Page Page `gorm:"foreignKey:PageID"`
+}

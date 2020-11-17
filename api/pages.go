@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"strings"
 )
 
 func GetPageByURL(c *gin.Context) {
@@ -72,6 +73,16 @@ func CreatePage(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("page_id = ?", p.ID).Delete(model.PageAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := findImagesInPageHTML(p.ID, p.HTML); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusCreated, p)
 }
 
@@ -87,6 +98,16 @@ func UpdatePage(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("page_id = ?", p.ID).Delete(model.PageAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := findImagesInPageHTML(p.ID, p.HTML); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, p)
 }
 
@@ -97,10 +118,58 @@ func DeletePage(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("page_id = ?", id).Delete(model.PageAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := db.DB.Delete(model.Page{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func findImagesInPageHTML(pageId, html string) error {
+	const (
+		start = "<img src=\"/images/"
+		end   = "\">"
+	)
+
+	s := strings.Index(html, start)
+	if s == -1 {
+		return nil
+	}
+	s += len(start)
+
+	e := strings.Index(html, end)
+	if e == -1 {
+		return nil
+	}
+
+	path := html[s:e]
+	var file model.File
+	if err := db.DB.Where("path = ?", path).First(&file).Error; err != nil {
+		return err
+	}
+
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	if err := db.DB.Create(model.PageAndFile{
+		ID:     id.String(),
+		PageID: pageId,
+		FileID: file.ID,
+	}).Error; err != nil {
+		return err
+	}
+
+	if err := findImagesInPageHTML(pageId, html[e+len(end):]); err != nil {
+		return err
+	}
+
+	return nil
 }
