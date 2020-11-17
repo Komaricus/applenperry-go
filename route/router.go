@@ -62,6 +62,7 @@ func Init(configuration config.Configuration) *gin.Engine {
 			open.POST("/order", api.CreateOrder)
 			open.GET("/docs/:url", api.GetDocumentByURL)
 			open.GET("/docs", api.GetOpenDocs)
+			open.GET("/pages/:url", api.GetPageByURL)
 		}
 
 		orders := appleApi.Group("/orders")
@@ -80,6 +81,15 @@ func Init(configuration config.Configuration) *gin.Engine {
 			docs.POST("/", api.CreateDocument)
 			docs.PUT("/", api.UpdateDocument)
 			docs.DELETE("/:id", api.DeleteDocument)
+		}
+
+		pages := appleApi.Group("/pages")
+		{
+			pages.GET("/", api.GetPages)
+			pages.GET("/:id", api.GetPage)
+			pages.POST("/", api.CreatePage)
+			pages.PUT("/", api.UpdatePage)
+			pages.DELETE("/:id", api.DeletePage)
 		}
 
 		categories := appleApi.Group("/categories")
