@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"strings"
 )
 
 func GetWords(c *gin.Context) {
@@ -82,6 +83,16 @@ func CreateAboutCider(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("cider_id = ?", aboutCider.ID).Delete(model.CiderAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := findImagesInDescription(aboutCider.ID, aboutCider.Description); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusCreated, aboutCider)
 }
 
@@ -97,6 +108,16 @@ func UpdateAboutCider(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("cider_id = ?", aboutCider.ID).Delete(model.CiderAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := findImagesInDescription(aboutCider.ID, aboutCider.Description); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, aboutCider)
 }
 
@@ -107,10 +128,58 @@ func DeleteAboutCider(c *gin.Context) {
 		return
 	}
 
+	if err := db.DB.Where("cider_id = ?", id).Delete(model.CiderAndFile{}).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := db.DB.Delete(model.AboutCider{ID: id}).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"id": id, "status": "deleted"})
+}
+
+func findImagesInDescription(ciderID, description string) error {
+	const (
+		start = "<img src=\"/images/"
+		end   = "\">"
+	)
+
+	s := strings.Index(description, start)
+	if s == -1 {
+		return nil
+	}
+	s += len(start)
+
+	e := strings.Index(description, end)
+	if e == -1 {
+		return nil
+	}
+
+	path := description[s:e]
+	var file model.File
+	if err := db.DB.Where("path = ?", path).First(&file).Error; err != nil {
+		return err
+	}
+
+	id, err := uuid.NewV4()
+	if err != nil {
+		return err
+	}
+
+	if err := db.DB.Create(model.CiderAndFile{
+		ID:      id.String(),
+		CiderID: ciderID,
+		FileID:  file.ID,
+	}).Error; err != nil {
+		return err
+	}
+
+	if err := findImagesInDescription(ciderID, description[e+len(end):]); err != nil {
+		return err
+	}
+
+	return nil
 }
