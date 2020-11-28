@@ -130,10 +130,11 @@ func findImages(newsId, content string) error {
 	}
 	s += len(start)
 
-	e := strings.Index(content, end)
+	e := strings.Index(content[s:], end)
 	if e == -1 {
 		return nil
 	}
+	e += s
 
 	path := content[s:e]
 	var file model.File

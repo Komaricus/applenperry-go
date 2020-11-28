@@ -143,10 +143,11 @@ func findImagesInPageHTML(pageId, html string) error {
 	}
 	s += len(start)
 
-	e := strings.Index(html, end)
+	e := strings.Index(html[s:], end)
 	if e == -1 {
 		return nil
 	}
+	e += s
 
 	path := html[s:e]
 	var file model.File

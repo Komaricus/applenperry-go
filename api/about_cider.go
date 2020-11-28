@@ -153,10 +153,11 @@ func findImagesInDescription(ciderID, description string) error {
 	}
 	s += len(start)
 
-	e := strings.Index(description, end)
+	e := strings.Index(description[s:], end)
 	if e == -1 {
 		return nil
 	}
+	e += s
 
 	path := description[s:e]
 	var file model.File
