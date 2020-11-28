@@ -63,6 +63,8 @@ func Init(configuration config.Configuration) *gin.Engine {
 			open.GET("/docs/:url", api.GetDocumentByURL)
 			open.GET("/docs", api.GetOpenDocs)
 			open.GET("/pages/:url", api.GetPageByURL)
+			open.GET("/words", api.GetWords)
+			open.GET("/words/:id", api.GetWordByID)
 		}
 
 		orders := appleApi.Group("/orders")

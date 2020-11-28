@@ -17,3 +17,10 @@ type AboutCider struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
+
+type Word struct {
+	AboutCiderTable
+	ID   string `json:"id" gorm:"primarykey"`
+	Name string `json:"text"`
+	Size int    `json:"weight"`
+}

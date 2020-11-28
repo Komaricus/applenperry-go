@@ -9,6 +9,31 @@ import (
 	"net/http"
 )
 
+func GetWords(c *gin.Context) {
+	var words []model.Word
+	if err := db.DB.Find(&words).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, words)
+}
+
+func GetWordByID(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "id param required"})
+		return
+	}
+	var aboutCider model.AboutCider
+	if err := orm.GetFirst(db.DB, &aboutCider, id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, aboutCider)
+}
+
 func GetAboutCiderList(c *gin.Context) {
 	var aboutCiderList []model.AboutCider
 	if err := orm.GetList(db.DB, &aboutCiderList, orm.Filters{
