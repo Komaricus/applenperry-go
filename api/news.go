@@ -7,8 +7,66 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid"
 	"net/http"
+	"strconv"
 	"strings"
 )
+
+func GetOpenNewsList(c *gin.Context) {
+	section := c.Param("section")
+	if section == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "section param required"})
+		return
+	}
+
+	page := 1
+	pageParam := c.Query("page")
+	if pageParam != "" {
+		page, _ = strconv.Atoi(pageParam)
+	}
+
+	perPage := -1
+	perPageParam := c.Query("perPage")
+	if perPageParam != "" {
+		perPage, _ = strconv.Atoi(perPageParam)
+	}
+
+	offset := (page - 1) * perPage
+
+	var news []model.NewsListItem
+	var err error
+	q := db.DB.Preload("File").Order("created_at desc").Offset(offset)
+	t := db.DB.Model(model.NewsListItem{}).Group("dbo.news.id")
+
+	if perPage != -1 {
+		q.Limit(perPage)
+	}
+
+	switch section {
+	case "latest":
+		err = q.Find(&news).Error
+	default:
+		q.Joins("left join dbo.news_sections on news_sections.id = news.section_id")
+		t.Joins("left join dbo.news_sections on news_sections.id = news.section_id")
+		t.Where("news_sections.url = ?", section)
+		err = q.Debug().Where("news_sections.url = ?", section).Find(&news).Error
+	}
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var count int64
+	if err := t.Count(&count).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, model.GetNewsListResponse{
+		News:  news,
+		Total: count,
+	})
+}
 
 func GetNews(c *gin.Context) {
 	var news []model.News

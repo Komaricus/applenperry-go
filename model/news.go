@@ -39,3 +39,23 @@ type NewsAndFiles struct {
 
 	News News `gorm:"foreignKey:NewsID"`
 }
+
+type NewsListItem struct {
+	NewsTable
+	ID          string    `json:"id" gorm:"primarykey"`
+	Name        string    `json:"name"`
+	URL         string    `json:"url"`
+	SectionID   string    `json:"sectionId"`
+	Subheader   string    `json:"subheader"`
+	Description string    `json:"description"`
+	FileID      string    `json:"fileId"`
+	CreatedAt   time.Time `json:"createdAt"`
+
+	File    File        `json:"image" gorm:"foreignKey:FileID"`
+	Section NewsSection `json:"section" gorm:"foreignKey:SectionID"`
+}
+
+type GetNewsListResponse struct {
+	News  []NewsListItem `json:"news"`
+	Total int64          `json:"total"`
+}

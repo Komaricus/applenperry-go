@@ -9,6 +9,16 @@ import (
 	"net/http"
 )
 
+func GetOpenNewsSections(c *gin.Context) {
+	var sections []model.NewsSection
+	if err := db.DB.Find(&sections).Order("priority").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, sections)
+}
+
 func GetNewsSections(c *gin.Context) {
 	var sections []model.NewsSection
 	if err := orm.GetList(db.DB, &sections, orm.Filters{
