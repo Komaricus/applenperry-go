@@ -68,6 +68,36 @@ func GetOpenNewsList(c *gin.Context) {
 	})
 }
 
+func GetOneOpenNews(c *gin.Context) {
+	section := c.Query("section")
+	if section == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "section query param required"})
+		return
+	}
+
+	url := c.Query("newsUrl")
+	if url == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "url query param required"})
+		return
+	}
+
+	var news model.News
+	q := db.DB.Debug().Preload("File").
+		Joins("Section").
+		Where("\"news\".url = ?", url)
+
+	if section != "latest" {
+		q = q.Where("\"Section\".url = ?", section)
+	}
+
+	if err := q.First(&news).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, news)
+}
+
 func GetNews(c *gin.Context) {
 	var news []model.News
 	q := db.DB.Preload("File").Preload("Section")
