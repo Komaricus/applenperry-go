@@ -28,6 +28,7 @@ type Product struct {
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	FileID      string    `json:"-" gorm:"column:main_image"`
+	NewProduct  bool      `json:"newProduct"`
 
 	MainImage         File              `json:"image" gorm:"foreignKey:FileID"`
 	ProductsType      ProductsType      `json:"productsType" gorm:"foreignKey:TypeID"`

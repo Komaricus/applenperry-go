@@ -17,7 +17,7 @@ type Category struct {
 	ParentID    *string   `json:"parentId"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
-	Icon        string    `json:"icon"`
+	Icon        *string   `json:"icon"`
 
 	IconFile File `json:"iconFile" gorm:"foreignKey:Icon"`
 }

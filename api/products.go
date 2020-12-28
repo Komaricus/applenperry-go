@@ -74,6 +74,12 @@ func GetProductsWithPaginate(c *gin.Context) {
 		t.Where("name LIKE ?", search)
 	}
 
+	// new product flag
+	if newProduct := c.Query("newProduct"); newProduct == "true" {
+		q.Where("new_product is true")
+		t.Where("new_product is true")
+	}
+
 	// sort
 	sort := c.Query("sort")
 	column := c.Query("column")
