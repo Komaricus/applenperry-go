@@ -160,6 +160,43 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	countriesMap := make(map[string]bool, len(countries))
+	for _, country := range countries {
+		if ok := countriesMap[country.ID]; !ok {
+			countriesMap[country.ID] = true
+		}
+	}
+
+	var countriesIcons []model.Country
+	if err := db.DB.Where("icon = ?", id).Find(&countriesIcons).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	for _, ci := range countriesIcons {
+		if ok := countriesMap[ci.ID]; !ok {
+			countriesMap[ci.ID] = true
+			countries = append(countries, ci)
+		}
+	}
+
+	var categories []model.Category
+	if err := db.DB.Where("icon = ?", id).Find(&categories).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var productTypes []model.ProductsType
+	if err := db.DB.Where("icon = ?", id).Find(&productTypes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	var productSugarTypes []model.ProductsSugarType
+	if err := db.DB.Where("icon = ?", id).Find(&productSugarTypes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	var slides []model.HomeSliderItem
 	if err := db.DB.Where("file_id = ?", id).Find(&slides).Error; err != nil {
@@ -244,7 +281,8 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 	}
 
 	if len(countries) > 0 || len(slides) > 0 || len(vendors) > 0 ||
-		len(news) > 0 || len(products) > 0 || len(shopSlides) > 0 || len(pages) > 0 || len(aboutCider) > 0 {
+		len(news) > 0 || len(products) > 0 || len(shopSlides) > 0 || len(pages) > 0 || len(aboutCider) > 0 ||
+		len(categories) > 0 || len(productTypes) > 0 || len(productSugarTypes) > 0 {
 		deleteConflicts := make(map[string]interface{})
 		deleteConflicts["countries"] = countries
 		deleteConflicts["home-slider"] = slides
@@ -254,6 +292,9 @@ func GetPossibleToDeleteFile(c *gin.Context) {
 		deleteConflicts["shop-slider"] = shopSlides
 		deleteConflicts["pages"] = pages
 		deleteConflicts["about-cider"] = aboutCider
+		deleteConflicts["categories"] = categories
+		deleteConflicts["products-types"] = productTypes
+		deleteConflicts["products-sugar-types"] = productSugarTypes
 
 		c.JSON(http.StatusOK, gin.H{
 			"id":              id,

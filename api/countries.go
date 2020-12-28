@@ -26,7 +26,7 @@ func GetCountryByURL(c *gin.Context) {
 
 func GetCountries(c *gin.Context) {
 	var countries []model.Country
-	if err := orm.GetList(db.DB.Preload("File"), &countries, orm.Filters{
+	if err := orm.GetList(db.DB.Preload("File").Preload("IconFile"), &countries, orm.Filters{
 		Search:     c.Query("search"),
 		SortColumn: c.Query("sort"),
 		SortOrder:  c.Query("order"),
@@ -45,7 +45,7 @@ func GetCountry(c *gin.Context) {
 		return
 	}
 	var country model.Country
-	if err := orm.GetFirst(db.DB.Preload("File"), &country, id); err != nil {
+	if err := orm.GetFirst(db.DB.Preload("File").Preload("IconFile"), &country, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

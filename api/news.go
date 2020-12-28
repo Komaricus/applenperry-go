@@ -48,7 +48,7 @@ func GetOpenNewsList(c *gin.Context) {
 		q.Joins("left join dbo.news_sections on news_sections.id = news.section_id")
 		t.Joins("left join dbo.news_sections on news_sections.id = news.section_id")
 		t.Where("news_sections.url = ?", section)
-		err = q.Debug().Where("news_sections.url = ?", section).Find(&news).Error
+		err = q.Where("news_sections.url = ?", section).Find(&news).Error
 	}
 
 	if err != nil {
@@ -82,7 +82,7 @@ func GetOneOpenNews(c *gin.Context) {
 	}
 
 	var news model.News
-	q := db.DB.Debug().Preload("File").
+	q := db.DB.Preload("File").
 		Joins("Section").
 		Where("\"news\".url = ?", url)
 

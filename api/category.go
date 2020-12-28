@@ -17,7 +17,7 @@ func GetCategoryByURL(c *gin.Context) {
 		return
 	}
 	var category model.Category
-	if err := db.DB.Where("url = ?", url).First(&category).Error; err != nil {
+	if err := db.DB.Preload("IconFile").Where("url = ?", url).First(&category).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -29,7 +29,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 	var categories []model.CategoryWithChild
 	q := db.DB.Preload("Child", func(db *gorm.DB) *gorm.DB {
 		return db.Order("name")
-	}).Order("created_at desc").Where("parent_id is null")
+	}).Preload("IconFile").Preload("Child.IconFile").Order("created_at desc").Where("parent_id is null")
 	if err := q.Find(&categories).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,7 +45,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 	}
 
 	var countries []model.Country
-	if err := db.DB.Order("name").Find(&countries).Error; err != nil {
+	if err := db.DB.Preload("IconFile").Order("name").Find(&countries).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -57,6 +57,8 @@ func GetCategoriesWithChild(c *gin.Context) {
 			URL:      country.URL,
 			ParentID: &countryCategoryID,
 			Child:    nil,
+			Icon:     country.Icon,
+			IconFile: country.IconFile,
 		})
 	}
 
@@ -72,7 +74,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 	}
 
 	var productsTypes []model.ProductsType
-	if err := db.DB.Order("name").Find(&productsTypes).Error; err != nil {
+	if err := db.DB.Preload("IconFile").Order("name").Find(&productsTypes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -84,6 +86,8 @@ func GetCategoriesWithChild(c *gin.Context) {
 			URL:      pt.URL,
 			ParentID: &productTypeID,
 			Child:    nil,
+			Icon:     pt.Icon,
+			IconFile: pt.IconFile,
 		})
 	}
 
@@ -99,7 +103,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 	}
 
 	var sugarTypes []model.ProductsSugarType
-	if err := db.DB.Order("name").Find(&sugarTypes).Error; err != nil {
+	if err := db.DB.Preload("IconFile").Order("name").Find(&sugarTypes).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -111,6 +115,8 @@ func GetCategoriesWithChild(c *gin.Context) {
 			URL:      st.URL,
 			ParentID: &sugarTypeID,
 			Child:    nil,
+			Icon:     st.Icon,
+			IconFile: st.IconFile,
 		})
 	}
 
@@ -121,7 +127,7 @@ func GetCategoriesWithChild(c *gin.Context) {
 
 func GetCategories(c *gin.Context) {
 	var categories []model.Category
-	if err := orm.GetList(db.DB, &categories, orm.Filters{
+	if err := orm.GetList(db.DB.Preload("IconFile"), &categories, orm.Filters{
 		Search:     c.Query("search"),
 		SortColumn: c.Query("sort"),
 		SortOrder:  c.Query("order"),
@@ -140,7 +146,7 @@ func GetCategory(c *gin.Context) {
 		return
 	}
 	var category model.Category
-	if err := orm.GetFirst(db.DB, &category, id); err != nil {
+	if err := orm.GetFirst(db.DB.Preload("IconFile"), &category, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

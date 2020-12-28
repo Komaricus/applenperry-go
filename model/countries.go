@@ -16,6 +16,8 @@ type Country struct {
 	URL       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
+	Icon      string    `json:"icon"`
 
-	File File `json:"image" gorm:"foreignKey:Flag"`
+	File     File `json:"image" gorm:"foreignKey:Flag"`
+	IconFile File `json:"iconFile" gorm:"foreignKey:Icon"`
 }

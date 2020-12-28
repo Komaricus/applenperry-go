@@ -26,7 +26,7 @@ func GetProductsSugarTypeByURL(c *gin.Context) {
 
 func GetProductsSugarTypes(c *gin.Context) {
 	var pst []model.ProductsSugarType
-	if err := orm.GetList(db.DB, &pst, orm.Filters{
+	if err := orm.GetList(db.DB.Preload("IconFile"), &pst, orm.Filters{
 		Search:     c.Query("search"),
 		SortColumn: c.Query("sort"),
 		SortOrder:  c.Query("order"),
@@ -45,7 +45,7 @@ func GetProductsSugarType(c *gin.Context) {
 		return
 	}
 	var pst model.ProductsSugarType
-	if err := orm.GetFirst(db.DB, &pst, id); err != nil {
+	if err := orm.GetFirst(db.DB.Preload("IconFile"), &pst, id); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
